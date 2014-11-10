@@ -2,6 +2,7 @@
 #include <malloc.h>
 #include <stdbool.h>
 #include "HCard.h"
+#include "Debug_Center.h"
 
 /*
 	Check this table.
@@ -25,6 +26,13 @@
 HCard *halloc(void)
 {
 	HCard *temp = (HCard *)malloc(sizeof(HCard)*48);
+	
+#ifdef DEBUG
+	if(temp == NULL)
+	{
+		printError("HCard", "Error", "halloc(void)", "Allocation Fail!!");
+	}
+#endif
 	
 	// Assign Month
 	for(int i=0; i<12; ++i)
@@ -108,6 +116,13 @@ void hfree(HCard *card)
 
 bool HCard_isBird(HCard *card)
 {
+#ifdef DEBUG
+	if(card == NULL)
+	{
+		printError("HCard", "Error", "isBird(HCard *)", "NULL HCard Pointer Exception!!");
+	}
+#endif
+
 	if(card->type == H_ANIM)
 	{
 		switch(card->month)
@@ -128,6 +143,12 @@ bool HCard_isBird(HCard *card)
 
 void hprint(HCard *card)
 {
+#ifdef DEBUG
+	if(card == NULL)
+	{
+		printError("HCard", "Error", "hprint(HCard *)", "NULL HCard Pointer Exception!!");
+	}
+#endif
 	printf("Month : %d ", card->month);
 		
 	printf("Type : ");

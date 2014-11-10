@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <malloc.h>
 #include "HDeck.h"
+#include "Debug_Center.h"
 
 /*
 	HSlot Function
@@ -10,6 +11,12 @@ HSlot *new_HSlot(void)
 {
 	// Make 
 	HSlot *temp = (HSlot *)malloc(sizeof(HSlot));
+#ifdef DEBUG
+	if(temp == NULL)
+	{
+		printError("HDeck", "Error", "new_HSlot(void)", "Allocation Fail!!");
+	}
+#endif
 	temp->prev  = NULL;
 	temp->next  = NULL;
 	temp->data  = NULL;
@@ -23,6 +30,12 @@ HSlot *new_HSlot(void)
 HDeck *new_HDeck(void)
 {
 	HDeck *temp  = (HDeck *)malloc(sizeof(HDeck));
+#ifdef DEBUG
+	if(temp == NULL)
+	{
+		printError("HDeck", "Error", "new_HDeck(void)", "Allocation Fail!!");
+	}
+#endif
 	temp->first  = NULL;
 	temp->size   = 0;
 	
@@ -40,7 +53,7 @@ HDeck *new_HDeck(void)
 	return temp;
 }
 
-void free_HDeck(HDeck *me)
+void delete_HDeck(HDeck *me)
 {
 	me->clear(me);
 	free(me);
@@ -48,6 +61,12 @@ void free_HDeck(HDeck *me)
 
 void HDeck_shake(HDeck *me)
 {
+#ifdef DEBUG
+	if(me == NULL)
+	{
+		printError("HDeck", "Error", "shake(void)", "NULL HDeck Pointer Exception!!");
+	}
+#endif
 	if(me->size >= 3)
 	{
 		for(int i=0; i<(me->size)/2; ++i) // Random Factor. Expect every cards will blend.
@@ -64,9 +83,19 @@ void HDeck_shake(HDeck *me)
 
 HSlot *HDeck_get(HDeck *me, int pos)
 {
+#ifdef DEBUG
+	if(me == NULL)
+	{
+		printError("HDeck", "Error", "get(HDeck *, int)", "NULL HDeck Pointer Exception!!");
+	}
+#endif
+
 	// Boundary Protection
 	if(pos < 0 || pos >= me->size)
 	{
+#ifdef DEBUG
+		printError("HDeck", "Warning", "get(HDeck *, int)", "Wrong Position Access!!");
+#endif
 		return NULL;
 	}
 	else
@@ -82,6 +111,16 @@ HSlot *HDeck_get(HDeck *me, int pos)
 
 void HDeck_push(HDeck *me, HCard *target)
 {
+#ifdef DEBUG
+	if(me == NULL)
+	{
+		printError("HDeck", "Error", "push(HDeck *, HCard *)", "NULL HDeck Pointer Exception!!");
+	}
+	if(target == NULL)
+	{
+		printError("HDeck", "Error", "push(HDeck *, HCard *)", "NULL HCard Pointer Exception!!");
+	}
+#endif
 	HSlot *new_slot = new_HSlot();
 	new_slot->data = target;
 		
@@ -128,6 +167,12 @@ void HDeck_push(HDeck *me, HCard *target)
 
 void HDeck_pop(HDeck *me)
 {
+#ifdef DEBUG
+	if(me == NULL)
+	{
+		printError("HDeck", "Error", "pop(HDeck *)", "NULL HDeck Pointer Exception!!");
+	}
+#endif
 	// Boundary Protection
 	if(me->size > 0)
 	{
@@ -180,40 +225,60 @@ void HDeck_pop(HDeck *me)
 }
 
 void HDeck_insert(HDeck *me, HCard *target, int pos)
-{	
+{
+#ifdef DEBUG
+	if(me == NULL)
+	{
+		printError("HDeck", "Error", "insert(HDeck *, HCard *, int)", "NULL HDeck Pointer Exception!!");
+	}
+	if(target == NULL)
+	{
+		printError("HDeck", "Error", "insert(HDeck *, HCard *, int)", "NULL HCard Pointer Exception!!");
+	}
+#endif
 	// New Slot will have the position as <pos>
 	// Boundary Protection
-	if(pos < 0 || pos >= me->size)
+	if(pos < 0 || pos > me->size)
 	{
+#ifdef DEBUG
+		printError("HDeck", "Warning", "insert(HDeck *, HCard *, int)", "Wrong Position Access!!");
+#endif
 		return ;
 	}
 	else
 	{
-		// Assign New Card
-		HSlot *new_slot = new_HSlot();
-		new_slot->data = target;
+		if(me->size == pos)
+		{
+			me->push(me, target);
+		}
+		else
+		{
+			// Assign New Card
+			HSlot *new_slot = new_HSlot();
+			new_slot->data = target;
 		
-		/*
-			Patch Connection
+			/*
+				Patch Connection
+				
+				change
+					prev_slot  <-->  next_slot
+				to
+					prev_slot  <-->  new_slot  <-->  next_slot
+			*/
 			
-			change
-				prev_slot  <-->  next_slot
-			to
-				prev_slot  <-->  new_slot  <-->  next_slot
-		*/
+			// Search Insertion Address
+			HSlot *next_slot = me->get(me, pos);
+			HSlot *prev_slot = next_slot->prev;
+			
+			// Modify Connection
+			new_slot->next  = next_slot;
+			new_slot->prev  = prev_slot;
+			
+			prev_slot->next = new_slot;
+			next_slot->prev = new_slot;
 		
-		// Search Insertion Address
-		HSlot *next_slot = me->get(me, pos);
-		HSlot *prev_slot = next_slot->prev;
-		
-		// Modify Connection
-		new_slot->next  = next_slot;
-		new_slot->prev  = prev_slot;
-		
-		prev_slot->next = new_slot;
-		next_slot->prev = new_slot;
-		
-		++(me->size);
+			++(me->size);
+		}
 	}
 }
 
@@ -221,9 +286,18 @@ void HDeck_insert(HDeck *me, HCard *target, int pos)
 
 void HDeck_remove(HDeck *me, int pos)
 {
+#ifdef DEBUG
+	if(me == NULL)
+	{
+		printError("HDeck", "Error", "remove(HDeck *, HCard *, int)", "NULL HDeck Pointer Exception!!");
+	}
+#endif
 	// Boundary Protection
 	if(pos < 0 || pos >= me->size || me->size <= 0)
 	{
+#ifdef DEBUG
+		printError("HDeck", "Warning", "remove(HDeck *, int)", "Wrong Position Access!!");
+#endif
 		return ;
 	}
 	else
@@ -278,6 +352,12 @@ void HDeck_remove(HDeck *me, int pos)
 
 void HDeck_swap(HDeck *me, int pos_1, int pos_2)
 {
+#ifdef DEBUG
+	if(me == NULL)
+	{
+		printError("HDeck", "Error", "swap(HDeck *, int, int)", "NULL HDeck Pointer Exception!!");
+	}
+#endif
 	// No Swap
 	if(pos_1 == pos_2 || me->size <= 2)
 	{
@@ -336,6 +416,12 @@ void HDeck_swap(HDeck *me, int pos_1, int pos_2)
 
 void HDeck_clear(HDeck *me)
 {
+#ifdef DEBUG
+	if(me == NULL)
+	{
+		printError("HDeck", "Error", "clear(HDeck *)", "NULL HDeck Pointer Exception!!");
+	}
+#endif
 	if(me->size > 0)
 	{
 		while(me->size > 0)
@@ -345,8 +431,33 @@ void HDeck_clear(HDeck *me)
 	}
 }
 
+void HDeck_drawFrom(HDeck *me, HDeck *you, int pos)
+{
+#ifdef DEBUG
+	if(me == NULL)
+	{
+		printError("HDeck", "Error", "clear(HDeck *)", "NULL HDeck Pointer Exception!!");
+	}
+	if(you == NULL)
+	{
+		printError("HDeck", "Error", "clear(HDeck *)", "NULL HDeck Pointer Exception(you)!!");
+	}
+#endif
+	HSlot *target = you->get(you, pos); // 목표는 누구?
+	
+	me->push(me, target->data);
+	
+	you->remove(you, pos);
+}
+
 void HDeck_print(HDeck *me)
 {
+#ifdef DEBUG
+	if(me == NULL)
+	{
+		printError("HDeck", "Error", "print(HDeck *)", "NULL HDeck Pointer Exception!!");
+	}
+#endif
 	if(me->size == 0)
 	{
 		printf("[HDeck : Note] There is no slot available in %p\n", me);

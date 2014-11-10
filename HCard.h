@@ -17,6 +17,8 @@
 	R  R  R  C  C  B  C  A^ B  B  P* A
 	P  P  P  P  P  P  P  P  P  P  P  X
 	P  P  P  P  P  P  P  P  P  P  P  P
+	
+	Constructed By : Kwon Se Kyu
 */
 
 // I don't like enum. enum makes codes more difficult.

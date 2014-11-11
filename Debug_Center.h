@@ -4,6 +4,7 @@
 
 FILE *log_file;
 
+void logReset(void);
 void printError(char const *where, char const *type, char const *function, char const *message);
 
 #endif

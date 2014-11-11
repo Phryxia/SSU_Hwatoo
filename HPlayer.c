@@ -18,7 +18,7 @@ HPlayer *new_HPlayer(void)
 	
 	me->name[0]     = '\0';
 	me->money       = 0;
-	me->myDeck      = NULL;
+	me->myDeck      = new_HDeck();
 	me->how_many_go = 0;
 	me->score       = 0;
 	me->score_norm  = 0;

@@ -47,7 +47,10 @@ HDeck *new_HDeck(void)
 	temp->insert = HDeck_insert;
 	temp->remove = HDeck_remove;
 	temp->swap   = HDeck_swap;
+	
+	temp->import = HDeck_import;
 	temp->clear  = HDeck_clear;
+	
 	temp->print  = HDeck_print;
 	
 	return temp;
@@ -377,40 +380,9 @@ void HDeck_swap(HDeck *me, int pos_1, int pos_2)
 		HSlot *pos_1_slot = me->get(me, pos_1);
 		HSlot *pos_2_slot = me->get(me, pos_2);
 		
-		// Save Link
-		HSlot *pos_1_prev = pos_1_slot->prev;
-		HSlot *pos_1_next = pos_1_slot->next;
-		HSlot *pos_2_prev = pos_2_slot->prev;
-		HSlot *pos_2_next = pos_2_slot->next;
-		
-		// Change Link
-		pos_1_prev->next  = pos_2_slot;
-		pos_1_next->prev  = pos_2_slot;
-		pos_2_prev->next  = pos_1_slot;
-		pos_2_next->prev  = pos_1_slot;
-		
-		pos_1_slot->next  = pos_2_next;
-		pos_1_slot->prev  = pos_2_prev;
-		pos_2_slot->next  = pos_1_next;
-		pos_2_slot->prev  = pos_1_prev;
-		
-		// Special Case. When pos_1 and pos_2 is adjacent, then link between pos_1 and pos_2 will break.
-		if(pos_2 - pos_1 == 1)
-		{
-			pos_2_slot->next = pos_1_slot;
-			pos_1_slot->prev = pos_2_slot;
-		}
-		else if(pos_1 == 0 && pos_2 == me->size-1)
-		{
-			pos_1_slot->next = pos_2_slot;
-			pos_2_slot->prev = pos_1_slot;
-		}
-		
-		// If pos_1 == 0 then start position should be changed as pos_2
-		if(pos_1 == 0)
-		{
-			me->first = pos_2_slot;
-		}
+		HCard *temp = pos_1_slot->data;
+		pos_1_slot->data = pos_2_slot->data;
+		pos_2_slot->data = temp;
 	}
 }
 

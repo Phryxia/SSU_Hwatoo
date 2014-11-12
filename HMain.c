@@ -11,7 +11,10 @@ int main(void)
 	
 	// Please Test HPlayer, HGame1
 	HDeck *myDeck = new_HDeck();
-	
+	myDeck->import(myDeck, CARD_SET);
+
+	myDeck->print(myDeck);
+	myDeck->shake(myDeck);
 	myDeck->print(myDeck);
 	
 	delete_HDeck(myDeck);

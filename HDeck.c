@@ -500,19 +500,29 @@ void HDeck_drawFrom(HDeck *me, HDeck *you, int pos)
 	if(me == NULL)
 	{
 		printError("HDeck", "Error", "clear(HDeck *)", "NULL HDeck Pointer Exception!!");
+		return ;
 	}
 	if(you == NULL)
 	{
 		printError("HDeck", "Error", "clear(HDeck *)", "NULL HDeck Pointer Exception(you)!!");
+		return ;
 	}
 #endif
 	HSlot *target = you->get(you, pos); // 목표는 누구?
+#ifdef DEBUG
+	if(target == NULL)
+	{
+		printError("HDeck", "Error", "drawFrom(HDeck *, HDeck *, int)", "NULL Target Exception : Wrong Pos");
+		return ;
+	}
+#endif
 	
 	me->push(me, target->data);
-	
 	you->remove(you, pos);
 }
 
+/*
+*/
 void HDeck_import(HDeck *me, HCard *CARD_SET)
 {
 #ifdef DEBUG

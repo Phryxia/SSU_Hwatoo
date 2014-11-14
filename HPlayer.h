@@ -7,6 +7,7 @@
 	HPlayer.h will provide Player's Information.
 	
 	Constructed by : Kwon Se Kyu
+	Attribution by : Nho Je Seung
 */
 typedef struct _HPlayer_
 {
@@ -24,6 +25,7 @@ typedef struct _HPlayer_
 	HDeck *animDeck;
 	HDeck *lineDeck;
 	Hdeck *gwanDeck;
+	
 	int    how_many_go;
 	int    score;
 	

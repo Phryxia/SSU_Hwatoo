@@ -19,14 +19,17 @@ typedef struct _HSlot_
 	// Member Function
 } HSlot;
 
-HSlot *new_HCard(void);
+HSlot *new_HSlot(void);
+void delete_HSlot(HSlot *me);
 
 /*
 	HDeck Structure is equivalent to "Double LinkedList".
 	
-	Warning : You have to use them as 0-biased index.
+	* You have to use them as 0-biased index.
+	* about insert : New Slot will have input index.
+					 This means that older one will be shifted.
 	
-	Cosntructed by : Kwon Se Kyu
+	Construction by : Kwon Se Kyu
 */
 typedef struct _HDeck_
 {
@@ -58,9 +61,15 @@ typedef struct _HDeck_
 	void (*print)(struct _HDeck_ *me);
 } HDeck;
 
+/*
+	Constructor & Destructor
+*/
 HDeck *new_HDeck(void);
 void   delete_HDeck(HDeck *me);
 
+/*
+	Member Function Origin : Don't use them directly.
+*/
 HSlot *HDeck_get(HDeck *me, int pos);  // get N-th HSlot's Pointer
 void   HDeck_push(HDeck *me, HCard *target);
 void   HDeck_pop(HDeck *me);

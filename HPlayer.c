@@ -16,15 +16,20 @@ HPlayer *new_HPlayer(void)
 	}
 #endif
 	
+	/*
+		Deck Data Reset
+	*/
 	me->name[0]     = '\0';
 	me->money       = 0;
 	me->myDeck      = new_HDeck();
-	me->normDeck		= new_HDeck();
-	me->animDeck		= new_HDeck();
-	me->lineDeck		= new_HDeck();
-	me->gwanDeck		= new_HDeck();
+	me->normDeck	= new_HDeck();
+	me->animDeck	= new_HDeck();
+	me->lineDeck	= new_HDeck();
+	me->gwanDeck	= new_HDeck();
+	
 	me->how_many_go = 0;
 	me->score       = 0;
+	
 	me->score_norm  = 0;
 	me->score_anim  = 0;
 	me->score_line  = 0;
@@ -37,6 +42,9 @@ HPlayer *new_HPlayer(void)
 
 void delete_HPlayer(HPlayer *me)
 {
+	/*
+		Delete Deck Data
+	*/
 	delete_HDeck(me->myDeck); // Because this contains several dynamic data.
 	delete_HDeck(me->normDeck);
 	delete_HDeck(me->animDeck);

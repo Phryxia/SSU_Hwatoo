@@ -9,35 +9,39 @@
 HPlayer *new_HPlayer(void)
 {
 	HPlayer *me = (HPlayer *)malloc(sizeof(HPlayer));
-#ifdef DEBUG
+
 	if(me == NULL)
 	{
+#ifdef DEBUG
 		printError("HPlayer", "Error", "new_HPlayer(void)", "Allocation Fail!!");
-	}
 #endif
-	
-	/*
-		Deck Data Reset
-	*/
-	me->name[0]     = '\0';
-	me->money       = 0;
-	me->myDeck      = new_HDeck();
-	me->normDeck	= new_HDeck();
-	me->animDeck	= new_HDeck();
-	me->lineDeck	= new_HDeck();
-	me->gwanDeck	= new_HDeck();
-	
-	me->how_many_go = 0;
-	me->score       = 0;
-	
-	me->score_norm  = 0;
-	me->score_anim  = 0;
-	me->score_line  = 0;
-	me->score_gwan  = 0;
-	
-	me->setName     = HPlayer_setName;
-	
-	return me;
+		return NULL;
+	}
+	else
+	{
+		/*
+			Deck Data Reset
+		*/
+		me->name[0]     = '\0';
+		me->money       = 0;
+		me->myDeck      = new_HDeck();
+		me->normDeck	= new_HDeck();
+		me->animDeck	= new_HDeck();
+		me->lineDeck	= new_HDeck();
+		me->gwanDeck	= new_HDeck();
+		
+		me->how_many_go = 0;
+		me->score       = 0;
+		
+		me->score_norm  = 0;
+		me->score_anim  = 0;
+		me->score_line  = 0;
+		me->score_gwan  = 0;
+		
+		me->setName     = HPlayer_setName;
+		
+		return me;
+	}
 }
 
 void delete_HPlayer(HPlayer *me)
@@ -55,12 +59,15 @@ void delete_HPlayer(HPlayer *me)
 
 void HPlayer_setName(HPlayer *me, char const *_name)
 {
-#ifdef DEBUG
 	if(me == NULL)
 	{
+#ifdef DEBUG
 		printError("HPlayer", "Error", "setName(HPlayer *, char const *)", "NULL HPlayer Pointer Exception!!");
-	}
 #endif
-	strncpy(me->name, _name, 31);
-	me->name[31] = '\0';
+	}
+	else
+	{
+		strncpy(me->name, _name, 31);
+		me->name[31] = '\0';
+	}
 }

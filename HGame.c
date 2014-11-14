@@ -10,33 +10,38 @@
 HGame *new_HGame(HCard *CARD_SET) // todo 
 {
 	HGame *me = (HGame *)malloc(sizeof(HGame));
-#ifdef DEBUG
+
 	if(me == NULL)
 	{
+#ifdef DEBUG
 		printError("HGame", "Error", "new_HGame(HCard *)", "Allocation Fail!!");
-	}
-	if(CARD_SET == NULL)
-	{
-		printError("HGame", "Error", "new_HGame(HCard *)", "No Card Set Available!!");
-	}
 #endif
-	
-	// Functino Assign
-	me->reset = HGame_reset;
-	me->setTurn = HGame_setTurn;
-	
-	// Allocate HPlayer & HDeck
-	for(int i=0; i<3; ++i)
-	{
-		me->player[i] = new_HPlayer();
 	}
-	me->unknown_cards = new_HDeck();
-	me->visible_cards = new_HDeck();
-	
-	me->marker_stack_size = 0;
-	me->was_nagari = false;
-	
-	me->reset(me, CARD_SET);
+	else if(CARD_SET == NULL)
+	{
+#ifdef DEBUG
+		printError("HGame", "Error", "new_HGame(HCard *)", "No Card Set Available!!");
+#endif
+	}
+	else
+	{
+		// Function Assign
+		me->reset   = HGame_reset;
+		me->setTurn = HGame_setTurn;
+		
+		// Allocate HPlayer & HDeck
+		for(int i=0; i<3; ++i)
+		{
+			me->player[i] = new_HPlayer();
+		}
+		me->unknown_cards = new_HDeck();
+		me->visible_cards = new_HDeck();
+		
+		me->marker_stack_size = 0;
+		me->was_nagari = false;
+		
+		me->reset(me, CARD_SET);
+	}
 }
 
 void delete_HGame(HGame *me)

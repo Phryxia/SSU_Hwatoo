@@ -27,86 +27,89 @@ HCard *halloc(void)
 {
 	HCard *temp = (HCard *)malloc(sizeof(HCard)*48);
 	
-#ifdef DEBUG
 	if(temp == NULL)
 	{
+#ifdef DEBUG
 		printError("HCard", "Error", "halloc(void)", "Allocation Fail!!");
-	}
 #endif
-	
-	// Assign Month
-	for(int i=0; i<12; ++i)
-	{
-		for(int j=0; j<4; ++j)
-		{
-			temp[i*4 + j].month     = i+1;    // 0-Biased to 1-Biased
-			temp[i*4 + j].type      = H_NORM; // Initialize
-			temp[i*4 + j].five_type = -1;
-			temp[i*4 + j].isDouble  = false;
-		}
+		return NULL;
 	}
-	
-	// January
-	temp[0].type = H_GWAN;
-	temp[1].type = H_LINE;
-	temp[1].five_type = HF_RED;
-	
-	// Feburary
-	temp[4].type = H_ANIM;
-	temp[5].type = H_LINE;
-	temp[5].five_type = HF_RED;
-	
-	// March
-	temp[8].type = H_GWAN;
-	temp[9].type = H_LINE;
-	temp[9].five_type = HF_RED;
-	
-	// April
-	temp[12].type = H_ANIM;
-	temp[13].type = H_LINE;
-	temp[13].five_type = HF_CHO;
-	
-	// May
-	temp[16].type = H_ANIM;
-	temp[17].type = H_LINE;
-	temp[17].five_type = HF_CHO;
-	
-	// June
-	temp[20].type = H_ANIM;
-	temp[21].type = H_LINE;
-	temp[21].five_type = HF_BLU;
-	
-	// July
-	temp[24].type = H_ANIM;
-	temp[25].type = H_LINE;
-	temp[25].five_type = HF_CHO;
-	
-	// August
-	temp[28].type = H_GWAN;
-	temp[29].type = H_ANIM;
-	
-	// September
-	temp[32].type = H_ANIM;
-	temp[32].isDouble = true;
-	temp[33].type = H_LINE;
-	temp[33].five_type = HF_BLU;
-	
-	// October
-	temp[36].type = H_ANIM;
-	temp[37].type = H_LINE;
-	temp[37].five_type = HF_BLU;
-	
-	// November
-	temp[40].type = H_GWAN;
-	temp[41].isDouble = true;
-	
-	// December
-	temp[44].type = H_GWAN;
-	temp[45].type = H_ANIM;
-	temp[46].type = H_LINE;
-	temp[46].five_type = HF_ETC;
-	
-	return temp;
+	else
+	{
+		// Assign Month
+		for(int i=0; i<12; ++i)
+		{
+			for(int j=0; j<4; ++j)
+			{
+				temp[i*4 + j].month     = i+1;    // 0-Biased to 1-Biased
+				temp[i*4 + j].type      = H_NORM; // Initialize
+				temp[i*4 + j].five_type = -1;
+				temp[i*4 + j].isDouble  = false;
+			}
+		}
+		
+		// January
+		temp[0].type = H_GWAN;
+		temp[1].type = H_LINE;
+		temp[1].five_type = HF_RED;
+		
+		// Feburary
+		temp[4].type = H_ANIM;
+		temp[5].type = H_LINE;
+		temp[5].five_type = HF_RED;
+		
+		// March
+		temp[8].type = H_GWAN;
+		temp[9].type = H_LINE;
+		temp[9].five_type = HF_RED;
+		
+		// April
+		temp[12].type = H_ANIM;
+		temp[13].type = H_LINE;
+		temp[13].five_type = HF_CHO;
+		
+		// May
+		temp[16].type = H_ANIM;
+		temp[17].type = H_LINE;
+		temp[17].five_type = HF_CHO;
+		
+		// June
+		temp[20].type = H_ANIM;
+		temp[21].type = H_LINE;
+		temp[21].five_type = HF_BLU;
+		
+		// July
+		temp[24].type = H_ANIM;
+		temp[25].type = H_LINE;
+		temp[25].five_type = HF_CHO;
+		
+		// August
+		temp[28].type = H_GWAN;
+		temp[29].type = H_ANIM;
+		
+		// September
+		temp[32].type = H_ANIM;
+		temp[32].isDouble = true;
+		temp[33].type = H_LINE;
+		temp[33].five_type = HF_BLU;
+		
+		// October
+		temp[36].type = H_ANIM;
+		temp[37].type = H_LINE;
+		temp[37].five_type = HF_BLU;
+		
+		// November
+		temp[40].type = H_GWAN;
+		temp[41].isDouble = true;
+		
+		// December
+		temp[44].type = H_GWAN;
+		temp[45].type = H_ANIM;
+		temp[46].type = H_LINE;
+		temp[46].five_type = HF_ETC;
+		
+		return temp;
+	}
 }
 
 void hfree(HCard *card)

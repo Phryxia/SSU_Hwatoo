@@ -24,7 +24,7 @@ typedef struct _HPlayer_
 	HDeck *normDeck;
 	HDeck *animDeck;
 	HDeck *lineDeck;
-	Hdeck *gwanDeck;
+	HDeck *gwanDeck;
 	
 	int    how_many_go;
 	int    score;

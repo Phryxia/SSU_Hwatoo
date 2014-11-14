@@ -55,16 +55,17 @@ void HGame_reset(HGame *me, HCard *CARD_SET)
 #ifdef DEBUG
 	if(me == NULL)
 	{
-		printError("HGame", "Error", "reset(HGame *)", "NULL HGame Pointer Exception!!");
+		printError("HGame", "Error", "reset(HGame *, HCard *)", "NULL HGame Pointer Exception!!");
+	}
+	if(CARD_SET == NULL)
+	{
+		printError("HGame", "Error", "reset(HGame *, HCard *)", "NULL ingredient Exception!!");
 	}
 #endif
 	// Prepare for ingredient cards.
-	me->unknown_cards->clear(me->unknown_cards);
 	me->visible_cards->clear(me->visible_cards);
-	for(int i=0; i<48; ++i)
-	{
-		me->unknown_cards->push(me->unknown_cards, &CARD_SET[i]);
-	}
+	me->unknown_cards->clear(me->unknown_cards);
+	me->unknown_cards->import(me->visible_cards, CARD_SET);
 	me->unknown_cards->shake(me->unknown_cards);
 	
 	// Card Distribution. From Last Card.

@@ -39,17 +39,21 @@ HDeck *new_HDeck(void)
 	temp->first  = NULL;
 	temp->size   = 0;
 	
-	temp->shake  = HDeck_shake;
+	
 	temp->get    = HDeck_get;
 	
 	temp->push   = HDeck_push;
 	temp->pop    = HDeck_pop;
 	temp->insert = HDeck_insert;
 	temp->remove = HDeck_remove;
-	temp->swap   = HDeck_swap;
 	
-	temp->import = HDeck_import;
+	temp->swap   = HDeck_swap;
+	temp->shake  = HDeck_shake;
+	temp->sort   = HDeck_sort;
 	temp->clear  = HDeck_clear;
+	
+	temp->drawFrom = HDeck_drawFrom;
+	temp->import = HDeck_import;
 	
 	temp->print  = HDeck_print;
 	
@@ -258,7 +262,7 @@ void HDeck_insert(HDeck *me, HCard *target, int pos)
 		{
 			// Assign New Card
 			HSlot *new_slot = new_HSlot();
-			new_slot->data = target;
+			new_slot->data  = target;
 		
 			/*
 				Patch Connection
@@ -281,6 +285,12 @@ void HDeck_insert(HDeck *me, HCard *target, int pos)
 			next_slot->prev = new_slot;
 		
 			++(me->size);
+			
+			// Change First
+			if(pos == 0)
+			{
+				me->first = new_slot;
+			}
 		}
 	}
 }
@@ -347,6 +357,12 @@ void HDeck_remove(HDeck *me, int pos)
 			// Re-Patch
 			prev_slot->next = next_slot;
 			next_slot->prev = prev_slot;
+			
+			// Change First Node
+			if(pos == 0)
+			{
+				me->first = next_slot;
+			}
 		}
 		
 		--(me->size);
@@ -379,10 +395,85 @@ void HDeck_swap(HDeck *me, int pos_1, int pos_2)
 		// Search for Object's Address
 		HSlot *pos_1_slot = me->get(me, pos_1);
 		HSlot *pos_2_slot = me->get(me, pos_2);
+
+#ifdef DEBUG
+		if(pos_1_slot == NULL)
+		{
+			printError("HDeck", "Error", "swap(HDeck *, int, int)", "pos 1 is NULL");
+		}
+		if(pos_2_slot == NULL)
+		{
+			printError("HDeck", "Error", "swap(HDeck *, int, int)", "pos 2 is NULL");
+		}
+#endif
 		
 		HCard *temp = pos_1_slot->data;
 		pos_1_slot->data = pos_2_slot->data;
 		pos_2_slot->data = temp;
+	}
+}
+
+int comp(HCard *x, HCard *y)
+{
+	if(x->month > y->month)
+	{
+		return 1;
+	}
+	else if(x->month < y->month)
+	{
+		return -1;
+	}
+	else
+	{
+		if(x->type > y->type)
+		{
+			return 1;
+		}
+		else if(x->type < y->type)
+		{
+			return -1;
+		}
+		else
+		{
+			if(x->five_type > y->five_type)
+			{
+				return 1;
+			}
+			else if(x->five_type < y->five_type)
+			{
+				return -1;
+			}
+			else
+			{
+				return 0;
+			}
+		}
+	}
+}
+
+void HDeck_sort(HDeck *me)
+{
+	for(int i=1; i<me->size; ++i)
+	{
+		// Search Insertion Point
+		int current_pos = i-1;
+		HSlot *source  = me->get(me, i);
+		HSlot *current = source->prev;
+		
+		while(current_pos >= 0)
+		{
+			if(comp(source->data, current->data) >= 0)
+			{
+				break;
+			}
+			
+			current = current->prev;
+			--current_pos;
+		}
+		
+		// Swap
+		me->insert(me, source->data, current_pos+1);
+		me->remove(me, i+1);
 	}
 }
 
@@ -420,6 +511,24 @@ void HDeck_drawFrom(HDeck *me, HDeck *you, int pos)
 	me->push(me, target->data);
 	
 	you->remove(you, pos);
+}
+
+void HDeck_import(HDeck *me, HCard *CARD_SET)
+{
+#ifdef DEBUG
+	if(me == NULL)
+	{
+		printError("HDeck", "Error", "import(HDeck *, HCard *)", "NULL HDeck Pointer Exception!!");
+	}
+	if(CARD_SET == NULL)
+	{
+		printError("HDeck", "Error", "import(HDeck *, HCard *)", "NULL ingredient Exception!!");
+	}
+#endif
+	for(int i=0; i<48; ++i)
+	{
+		me->push(me, &CARD_SET[i]);
+	}
 }
 
 void HDeck_print(HDeck *me)

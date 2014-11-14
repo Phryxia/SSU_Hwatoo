@@ -20,6 +20,10 @@ typedef struct _HPlayer_
 		Game Play
 	*/
 	HDeck *myDeck;
+	HDeck *normDeck;
+	HDeck *animDeck;
+	HDeck *lineDeck;
+	Hdeck *gwanDeck;
 	int    how_many_go;
 	int    score;
 	

@@ -29,7 +29,7 @@ P  P  P  P  P  P  P  P  P  P  P  P
 이는 구조체 복사로 포인터가 꼬이는 것을 방지하기 위함이다.
 
 
-
+gkgkgkgkgkgkgkgkgkgk
 ~ 멤버 변수
 int month
 	월을 저장한다. 헷갈리지 않게 1부터 시작하도록 설정했다.

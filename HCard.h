@@ -43,12 +43,12 @@ typedef struct _HCard_ // Warning : Month starts as 1-Biased. Very Be Careful.
 
 // Memory Control
 HCard *halloc(void); // This will make 48 Hwa-Tu game cards array
-void hfree(HCard *);
+void delete_HCard(HCard *card);
 
 // Interface
-bool HCard_isBird(HCard *card);
+bool HCard_isBird(HCard const *card);
 
 // For Debugging
-void hprint(HCard *);
+void hprint(HCard const *card);
 
 #endif

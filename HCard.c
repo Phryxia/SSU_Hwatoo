@@ -112,12 +112,12 @@ HCard *halloc(void)
 	}
 }
 
-void hfree(HCard *card)
+void delete_HCard(HCard *card)
 {
 	free(card);
 }
 
-bool HCard_isBird(HCard *card)
+bool HCard_isBird(HCard const *card)
 {
 #ifdef DEBUG
 	if(card == NULL)
@@ -144,7 +144,7 @@ bool HCard_isBird(HCard *card)
 	}
 }
 
-void hprint(HCard *card)
+void hprint(HCard const *card)
 {
 #ifdef DEBUG
 	if(card == NULL)

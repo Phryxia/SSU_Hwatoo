@@ -129,7 +129,7 @@ HSlot *HDeck_get(HDeck *me, int pos)
 	}
 }
 
-void HDeck_push(HDeck *me, HCard *target)
+void HDeck_push(HDeck *me, HCard const *target)
 {
 	if(me == NULL)
 	{
@@ -276,7 +276,7 @@ void HDeck_pop(HDeck *me)
 	}
 }
 
-void HDeck_insert(HDeck *me, HCard *target, int pos)
+void HDeck_insert(HDeck *me, HCard const *target, int pos)
 {
 	if(me == NULL)
 	{
@@ -500,7 +500,7 @@ void HDeck_swap(HDeck *me, int pos_1, int pos_2)
 			}
 			else
 			{
-				HCard *temp = pos_1_slot->data;
+				HCard const *temp = pos_1_slot->data;
 				pos_1_slot->data = pos_2_slot->data;
 				pos_2_slot->data = temp;
 			}
@@ -535,7 +535,7 @@ void HDeck_shake(HDeck *me)
 	}
 }
 
-int _Hcomp(HCard *x, HCard *y)
+int _Hcomp(HCard const *x, HCard const *y)
 {
 	if(x->month > y->month)
 	{
@@ -649,7 +649,7 @@ void HDeck_drawFrom(HDeck *me, HDeck *you, int pos)
 		if(target == NULL)
 		{
 #ifdef DEBUG
-			printError("HDeck", "Error", "drawFrom(HDeck *, HDeck *, int)", "NULL Target Exception : Wrong Pos");
+			printError("HDeck", "Warning", "drawFrom(HDeck *, HDeck *, int)", "NULL Target Exception : Wrong Pos");
 #endif
 		}
 		else
@@ -660,7 +660,7 @@ void HDeck_drawFrom(HDeck *me, HDeck *you, int pos)
 	}
 }
 
-void HDeck_import(HDeck *me, HCard *CARD_SET)
+void HDeck_import(HDeck *me, HCard const *CARD_SET)
 {
 	if(me == NULL)
 	{
@@ -670,10 +670,16 @@ void HDeck_import(HDeck *me, HCard *CARD_SET)
 	}
 	else if(CARD_SET == NULL)
 	{
+#ifdef DEBUG
 		printError("HDeck", "Error", "import(HDeck *, HCard *)", "NULL ingredient Exception!!");
+#endif
 	}
 	else
 	{
+		if(me->size > 0)
+		{
+			me->clear(me);
+		}
 		for(int i=0; i<48; ++i)
 		{
 			me->push(me, &CARD_SET[i]);

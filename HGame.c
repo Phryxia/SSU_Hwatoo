@@ -1,13 +1,15 @@
 #include <stdio.h>
 #include <malloc.h>
 #include <stdbool.h>
+#include <termios.h>
 #include "HCard.h"
 #include "HDeck.h"
 #include "HPlayer.h"
 #include "HGame.h"
+#include "HGUI.h"
 #include "Debug_Center.h"
 
-HGame *new_HGame(HCard *CARD_SET) // todo 
+HGame *new_HGame(HCard const *CARD_SET) // todo 
 {
 	HGame *me = (HGame *)malloc(sizeof(HGame));
 
@@ -28,6 +30,7 @@ HGame *new_HGame(HCard *CARD_SET) // todo
 		// Function Assign
 		me->reset   = HGame_reset;
 		me->setTurn = HGame_setTurn;
+		me->draw    = HGame_draw;
 		
 		// Allocate HPlayer & HDeck
 		for(int i=0; i<3; ++i)
@@ -42,7 +45,11 @@ HGame *new_HGame(HCard *CARD_SET) // todo
 		
 		me->marker_stack_size = 0;
 		me->was_nagari = false;
-		
+
+		me->player[0]->setName(me->player[0], "Min-Su");
+		me->player[1]->setName(me->player[1], "Yeong-Heui");
+		me->player[2]->setName(me->player[2], "Cheol-Su");
+
 		me->reset(me, CARD_SET);
 	}
 }
@@ -61,7 +68,7 @@ void delete_HGame(HGame *me)
 	}
 }
 
-void HGame_reset(HGame *me, HCard *CARD_SET)
+void HGame_reset(HGame *me, HCard const *CARD_SET)
 {
 #ifdef DEBUG
 	if(me == NULL)
@@ -76,9 +83,9 @@ void HGame_reset(HGame *me, HCard *CARD_SET)
 	// Prepare for ingredient cards.
 	for(int i=0; i<12; ++i)
 	{
-		me->visible_cards[i]->clear(me->visible_cards[i]);
+		me->visible_cards[i]->klear(me->visible_cards[i]);
 	}
-	me->unknown_cards->clear(me->unknown_cards);
+	me->unknown_cards->klear(me->unknown_cards);
 	me->unknown_cards->import(me->unknown_cards, CARD_SET);
 	me->unknown_cards->shake(me->unknown_cards);
 	
@@ -143,5 +150,33 @@ void HGame_setTurn(HGame *me, HPlayer *who_win)
 		HPlayer *temp   = me->player[i];
 		me->player[i]   = me->player[i-1];
 		me->player[i-1] = temp;
+	}
+}
+
+void HGame_draw(HGame *me)
+{
+	if(me == NULL)
+	{
+#ifdef DEBUG
+		printError("HGame", "Error", "draw(HGame *)", "Cannot draw this game : NULL");
+#endif
+		return ;
+	}
+	HGUI_erase();
+
+	// Order List
+	HGUI_curSet(2, 2);
+	printf("ACTION : ");
+
+	// Draw Game Cards
+	HGUI_curSet(2, 3);
+	printf("GAME CARD REGION");
+
+	// Draw Player's Cards
+	for(int i=0; i<3; ++i)
+	{
+		// Name
+		HGUI_curSet(2, 8*(i+1));
+		printf("PLAYER %d : %s", i+1, me->player[i]->name);
 	}
 }

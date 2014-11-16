@@ -39,7 +39,7 @@ typedef struct _HPlayer_
 		Member Function
 	*/
 	void (*setName)(struct _HPlayer_ *, char const *);
-	void (*eat)(struct _HPlayer_ *, HCard *);
+	void (*eat)(struct _HPlayer_ *, HCard const *);
 } HPlayer;
 
 HPlayer *new_HPlayer(void);       // Make a new HPlayer and return its pointer.
@@ -47,6 +47,6 @@ void delete_HPlayer(HPlayer *me); // When you finish using HPlayer, please deall
 
 void HPlayer_setName(HPlayer *me, char const *_name);
 
-void HPlayer_eat(HPlayer *me, HCard *card);
+void HPlayer_eat(HPlayer *me, HCard const *card);
 
 #endif

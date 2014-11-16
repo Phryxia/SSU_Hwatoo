@@ -69,7 +69,7 @@ HDeck *new_HDeck(void)
 		temp->swap   = HDeck_swap;
 		temp->shake  = HDeck_shake;
 		temp->sort   = HDeck_sort;
-		temp->clear  = HDeck_clear;
+		temp->klear  = HDeck_clear;
 		
 		temp->drawFrom = HDeck_drawFrom;
 		temp->import = HDeck_import;
@@ -82,7 +82,7 @@ HDeck *new_HDeck(void)
 
 void delete_HDeck(HDeck *me)
 {
-	me->clear(me);
+	me->klear(me);
 	free(me);
 }
 
@@ -613,7 +613,7 @@ void HDeck_clear(HDeck *me)
 	if(me == NULL)
 	{
 #ifdef DEBUG
-		printError("HDeck", "Error", "clear(HDeck *)", "NULL HDeck Pointer Exception!!");
+		printError("HDeck", "Error", "klear(HDeck *)", "NULL HDeck Pointer Exception!!");
 #endif
 	}
 	else
@@ -633,13 +633,13 @@ void HDeck_drawFrom(HDeck *me, HDeck *you, int pos)
 	if(me == NULL)
 	{
 #ifdef DEBUG
-		printError("HDeck", "Error", "clear(HDeck *)", "NULL HDeck Pointer Exception!!");
+		printError("HDeck", "Error", "klear(HDeck *)", "NULL HDeck Pointer Exception!!");
 #endif
 	}
 	else if(you == NULL)
 	{
 #ifdef DEBUG
-		printError("HDeck", "Error", "clear(HDeck *)", "NULL HDeck Pointer Exception(you)!!");
+		printError("HDeck", "Error", "klear(HDeck *)", "NULL HDeck Pointer Exception(you)!!");
 #endif
 	}
 	else
@@ -678,7 +678,7 @@ void HDeck_import(HDeck *me, HCard const *CARD_SET)
 	{
 		if(me->size > 0)
 		{
-			me->clear(me);
+			me->klear(me);
 		}
 		for(int i=0; i<48; ++i)
 		{

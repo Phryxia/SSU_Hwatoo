@@ -73,7 +73,7 @@ void HPlayer_setName(HPlayer *me, char const *_name)
 	}
 }
 
-void HPlayer_eat(HPlayer *me, HCard *card)
+void HPlayer_eat(HPlayer *me, HCard const *card)
 {
 	if(me == NULL)
 	{

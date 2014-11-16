@@ -1,7 +1,9 @@
 #ifndef HGUI
 #define HGUI
 
-#define setCursor(x, y) printf("\e["#y";"#x"f")
+#include <stdbool.h>
+
+//#define setCursor(x, y) printf("\e["#y";"#x"f")
 
 #define FDCOLOR(x) "\e[3"#x"m"
 #define FBCOLOR(x) "\e[9"#x"m"
@@ -23,10 +25,16 @@
 #define DARK       0
 #define BRIGHT     1
 
+int  HGUI_getch(void);
 void HGUI_cSet(int color, int mode, int brightness);
 void HGUI_cReset(void);
 void HGUI_erase(void);
 void HGUI_curSet(int xpos, int ypos);
+
 void HGUI_rect(int x1, int y1, int x2, int y2);
+void HGUI_window(int x1, int y1, int x2, int y2);
+void HGUI_text(int xpos, int ypos, char const *text, bool wide); // Center Allign
+
+int  HGUI_menu(int xpos, int ypos, char const **, int m_length); // Center Biased xpos.
 
 #endif

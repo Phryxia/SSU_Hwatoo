@@ -28,14 +28,17 @@ typedef struct _HGame_
 	/*
 		Member Function
 	*/
-	void (*reset)(struct _HGame_ *, HCard *CARD_SET);
+	void (*reset)(struct _HGame_ *, HCard const *CARD_SET);
 	void (*setTurn)(struct _HGame_ *, HPlayer *);
+	void (*draw)(struct _HGame_ *);
 } HGame;
 
-HGame *new_HGame(HCard *CARD_SET);
+HGame *new_HGame(HCard const *CARD_SET);
 void   delete_HGame(HGame *me);
 
-void   HGame_reset(HGame *me, HCard *CARD_SET); // This reset the level. But not reset every data.
+void   HGame_reset(HGame *me, HCard const *CARD_SET); // This reset the level. But not reset every data.
 void   HGame_setTurn(HGame *me, HPlayer *who_win); // Make winner first.
+
+void   HGame_draw(HGame *me);
 
 #endif

@@ -29,6 +29,7 @@ int main(void)
 	
     while(!gameEnd)
     {
+    	
         printf("1.new game\n2.load game\n3.exit");
         switch((mode = getch()) - '0')
         {
@@ -45,7 +46,7 @@ int main(void)
 				gameEnd = true;
                 break;
             default:
-                break;//잘못된 입력 
+                break;//잘못된 입력
         }
     }
 	

@@ -87,6 +87,7 @@ void game(HGame *game)//전체게임함수
 void eat(HGame *game, int player_num)//자기턴진행함수
 {
     //먹을거 있니(1~7)-뭐먹을래(1~2)
+    HPlayer *current_player = game->player[player_num];
 	int select;
 	while(true)
 	{
@@ -96,12 +97,53 @@ void eat(HGame *game, int player_num)//자기턴진행함수
 			break;
 		}
 	}
+	HCard *myCard = current_player->myDeck->get(current_player->myDeck, select)->data;
+	HCard *topCard = game->unknown_cards->first->prev->data;
+	current_player->myDeck->remove(current_player->myDeck, select);
+	game->unknown_cards->pop(game->unknown_cards);
 
     //까기
+    bool hasZok = false;
+    bool hasPoo = false;
+    bool eatPoo = false;
+    bool hasDdk = false;
 	
+	if(myCard->month == topCard->month)
+	{
+		switch(game->visible_cards[myCard->month-1]->size)
+		{
+			case 0:
+				// There is no matching card on the game
+				// ZOK
+				hasZok = true;
+				current_player->eat(current_player, myCard);
+				current_player->eat(current_player, topCard);
+				break;
+			case 1:
+				// POO
+				hasPoo = true;
+				game->visible_cards->push(game->visible_cards, myCard);
+				game->visible_cards->push(game->visible_cards, topCard);
+				break;
+			case 2:
+				// 4장 먹기
+				eatPoo = true;
+				current_player->eat(current_player, myCard);
+				current_player->eat(current_player, topCard);
+				current_player->eat(current_player, game->visible_cards[myCard->month-1]->first);
+				current_player->eat(current_player, game->visible_cards[myCard->month-1]->first->next);
+				game->visible_cards[myCard->month-1]->clear(game->visible_cards[myCard->month-1]);
+				break;
+		}
+	}
+	else
+	{
+	}
+
+
 
     //쌋냐
-	bool hasPoo = false;
+	
 	/*
 	if(~~~) // 조건 필요함
 	{

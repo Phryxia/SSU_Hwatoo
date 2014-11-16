@@ -19,7 +19,7 @@ typedef struct _HGame_
 	HPlayer *player[3];
 	
 	HDeck *unknown_cards;
-	HDeck *visible_cards;
+	HDeck *visible_cards[12]; // Save Cards as Month Order
 	
 	int  marker_stack[12]; // This stores duplicated cards' index at visible_cards
 	int  marker_stack_size;

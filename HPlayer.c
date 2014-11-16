@@ -39,6 +39,7 @@ HPlayer *new_HPlayer(void)
 		me->score_gwan  = 0;
 		
 		me->setName     = HPlayer_setName;
+		me->eat         = HPlayer_eat;
 		
 		return me;
 	}
@@ -69,5 +70,39 @@ void HPlayer_setName(HPlayer *me, char const *_name)
 	{
 		strncpy(me->name, _name, 31);
 		me->name[31] = '\0';
+	}
+}
+
+void HPlayer_eat(HPlayer *me, HCard *card)
+{
+	if(me == NULL)
+	{
+#ifdef DEBUG
+		printError("HPlayer", "Error", "eat(HPlayer *, HCard *)", "NULL HPlayer Exception");
+#endif
+	}
+	else if(card == NULL)
+	{
+#ifdef DEBUG
+		printError("HPlayer", "Error", "eat(HPlayer *, HCard *)", "NULL HCard Exception");
+#endif
+	}
+	else
+	{
+		switch(card->type)
+		{
+			case H_NORM:
+				me->normDeck->push(me->normDeck, card);
+				break;
+			case H_ANIM:
+				me->animDeck->push(me->animDeck, card);
+				break;
+			case H_LINE:
+				me->lineDeck->push(me->lineDeck, card);
+				break;
+			case H_GWAN:
+				me->gwanDeck->push(me->gwanDeck, card);
+				break;
+		}
 	}
 }

@@ -37,7 +37,8 @@ HGame *new_HGame(HCard const *CARD_SET) // todo
 		{
 			(me->visible_cards)[i] = new_HDeck();
 		}
-		
+		me->now_turn = 0;
+
 		me->marker_stack_size = 0;
 		me->was_nagari = false;
 
@@ -80,7 +81,7 @@ void HGame_reset(HGame *me, HCard const *CARD_SET)
 	// Prepare for ingredient cards.
 	for(int i=0; i<12; ++i)
 	{
-		HDeck_clear(me->visible_cards[i]);
+		HDeck_clear((me->visible_cards)[i]);
 	}
 	HDeck_clear(me->unknown_cards);
 	HDeck_import(me->unknown_cards, CARD_SET);
@@ -97,9 +98,10 @@ void HGame_reset(HGame *me, HCard const *CARD_SET)
 	// Give Player the Cards
 	for(int i=0; i<3; ++i)
 	{
+		HDeck_clear((me->player)[i]->myDeck);
 		for(int j=0; j<4; ++j) // Give 4 cards
 		{
-			HDeck_drawFrom(me->player[i]->myDeck, me->unknown_cards, me->unknown_cards->size-1);
+			HDeck_drawFrom((me->player)[i]->myDeck, me->unknown_cards, me->unknown_cards->size-1);
 		}
 	}
 	
@@ -115,7 +117,7 @@ void HGame_reset(HGame *me, HCard const *CARD_SET)
 	{
 		for(int j=0; j<3; ++j) // Give 4 cards
 		{
-			HDeck_drawFrom(me->player[i]->myDeck, me->unknown_cards, me->unknown_cards->size-1);
+			HDeck_drawFrom((me->player)[i]->myDeck, me->unknown_cards, me->unknown_cards->size-1);
 		}
 	}
 }
@@ -159,24 +161,40 @@ void HGame_draw(HGame *me)
 	}
 	HGUI_erase();
 
+	// Draw the Window
+	for(int i=0; i<4; ++i)
+	{
+		HGUI_window(1, 1+10*i, 46, 1+10*(i+1));
+	}
+
 	// Order List
-	HGUI_curSet(2, 2);
-	printf("ACTION : ");
+	HGUI_text(3, 2, "ACTION : ", false, ALIGN_LEFT);
 
 	// Draw Game Cards
-	HGUI_curSet(2, 3);
-	printf("GAME CARD REGION");
+	HGUI_text(3, 3, "GAME CARD AREA", false, ALIGN_LEFT);
 
 	// Draw Player's Cards
+	int pbias_y = 11;
+	int pbias_x = 3;
 	for(int i=0; i<3; ++i)
 	{
 		// Name
-		HGUI_curSet(2, 8*(i+1));
-		printf("PLAYER %d : %s", i+1, me->player[i]->name);
+		HGUI_curSet(pbias_x, pbias_y+10*i+1);
+		if(me->now_turn == i)
+		{
+			HGUI_cSet(RED, BACKGROUND, DARK);
+			HGUI_cSet(BLACK, FOREGROUND, DARK);
+		}
+		else
+		{
+			HGUI_cReset();
+		}
+		printf("PLAYER %d : %s", i+1, (me->player)[i]->name);
+		HGUI_cReset();
 
 		for(int c=0; c<(me->player)[i]->myDeck->size; ++c)
 		{
-			HGUI_card(2 + (CARD_WIDTH+1)*c, (CARD_HEIGHT+3)*(i+1)+1, HDeck_get((me->player)[i]->myDeck, c)->data);
+			HGUI_card(pbias_x + (CARD_WIDTH+1)*c, pbias_y+10*i+3, HDeck_get((me->player)[i]->myDeck, c)->data);
 		}
 	}
 }

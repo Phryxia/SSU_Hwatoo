@@ -17,6 +17,7 @@ typedef struct _HGame_
 		Member Variable
 	*/
 	HPlayer *player[3];
+	int now_turn;
 	
 	HDeck *unknown_cards;
 	HDeck *visible_cards[12]; // Save Cards as Month Order

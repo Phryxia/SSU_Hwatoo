@@ -504,7 +504,7 @@ void HDeck_shake(HDeck *me)
 	{
 		if(me->size >= 2)
 		{
-			for(int i=0; i<(me->size)/2; ++i) // Random Factor. Expect every cards will blend.
+			for(int i=0; i<(me->size); ++i) // Random Factor. Expect every cards will blend.
 			{
 				// Select 2 card randomly and Shake it Shake it!
 				int x = rand()%(me->size);

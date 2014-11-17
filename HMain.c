@@ -56,6 +56,7 @@ int main(void)
         {
             case 0: 
                 //game start
+            	HGame_reset(GAME, CARD_SET);
                 HGame_draw(GAME);
                 break;
             case 1:

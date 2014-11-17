@@ -2,6 +2,7 @@
 #define HGUI
 
 #include <stdbool.h>
+#include "HCard.h"
 
 //#define setCursor(x, y) printf("\e["#y";"#x"f")
 
@@ -25,6 +26,10 @@
 #define DARK       0
 #define BRIGHT     1
 
+#define ALIGN_LEFT   0
+#define ALIGN_CENTER 1
+#define ALIGN_RIGHT  2
+
 int  HGUI_getch(void);
 void HGUI_cSet(int color, int mode, int brightness);
 void HGUI_cReset(void);
@@ -33,8 +38,12 @@ void HGUI_curSet(int xpos, int ypos);
 
 void HGUI_rect(int x1, int y1, int x2, int y2);
 void HGUI_window(int x1, int y1, int x2, int y2);
-void HGUI_text(int xpos, int ypos, char const *text, bool wide); // Center Allign
+void HGUI_text(int xpos, int ypos, char const *text, bool wide, int mode); // Center Allign
 
 int  HGUI_menu(int xpos, int ypos, char const **, int m_length); // Center Biased xpos.
+void HGUI_card(int xpos, int ypos, HCard const *card);
+
+#define CARD_WIDTH  5
+#define CARD_HEIGHT 5
 
 #endif

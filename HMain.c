@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
-#include <ncurses.h>
+#include <stdlib.h>
+#include <time.h>
 #include "HCard.h"
 #include "HDeck.h"
 #include "HPlayer.h"
@@ -18,6 +19,7 @@ bool gameEnd = false;
 int main(void)
 {
 	logReset();
+	srand(time(NULL));
 	/*
 		RESOURCE INITIALIZE
 	*/
@@ -25,6 +27,7 @@ int main(void)
 	HCard *CARD_SET = halloc();
 	printError("Main", "Note", "main(void)", "Try to load HGame...");
 	HGame *GAME = new_HGame(CARD_SET);
+
 	if(GAME == NULL)
 	{
 #ifdef DEBUG
@@ -44,7 +47,7 @@ int main(void)
     	// Menu Displyaing
     	HGUI_erase();
     	HGUI_window(1, 1, 80, 20);
-    	HGUI_text(40, 6, "사기치면  손모가지", true);
+    	HGUI_text(40, 6, "사기치면  손모가지", true, ALIGN_CENTER);
     	mode = HGUI_menu(40, 12, MENU_LIST, 3);
 
     	// Enter the Section
@@ -53,25 +56,22 @@ int main(void)
         {
             case 0: 
                 //game start
-                GAME->draw(GAME);
-                printf("TEST");
-                getchar();
+                HGame_draw(GAME);
                 break;
             case 1:
                 //load game
                 printf("load game\n");
-                getchar();
                 break;
             case 2:
-                printf("exit\n");
 				gameEnd = true;
-				getchar();
                 break;
             default:
                 break;//잘못된 입력 
         }
+        getchar();
     }
 	
+
 	/*
 		De-Allocation
 	*/
@@ -110,7 +110,7 @@ void doGame(HGame *game)//전체게임함수
 void eat(HGame *game, int player_num)//자기턴진행함수
 {
     //먹을거 있니(1~7)-뭐먹을래(1~2)
-    HPlayer *current_player = game->player[player_num];
+    HPlayer *current_player = (game->player)[player_num];
 	int select;
 	while(true)
 	{
@@ -120,10 +120,10 @@ void eat(HGame *game, int player_num)//자기턴진행함수
 			break;
 		}
 	}
-	HCard const *myCard = current_player->myDeck->get(current_player->myDeck, select)->data;
+	HCard const *myCard = HDeck_get(current_player->myDeck, select)->data;
 	HCard const *topCard = game->unknown_cards->first->prev->data;
-	current_player->myDeck->remove(current_player->myDeck, select);
-	game->unknown_cards->pop(game->unknown_cards);
+	HDeck_remove(current_player->myDeck, select);
+	HDeck_pop(game->unknown_cards);
 
     //까기
     bool hasZok = false;
@@ -139,23 +139,23 @@ void eat(HGame *game, int player_num)//자기턴진행함수
 				// There is no matching card on the game
 				// ZOK
 				hasZok = true;
-				current_player->eat(current_player, myCard);
-				current_player->eat(current_player, topCard);
+				HPlayer_eat(current_player, myCard);
+				HPlayer_eat(current_player, topCard);
 				break;
 			case 1:
 				// POO
 				hasPoo = true;
-				game->visible_cards[myCard->month-1]->push(game->visible_cards[myCard->month-1], myCard);
-				game->visible_cards[myCard->month-1]->push(game->visible_cards[myCard->month-1], topCard);
+				HDeck_push(game->visible_cards[myCard->month-1], myCard);
+				HDeck_push(game->visible_cards[myCard->month-1], topCard);
 				break;
 			case 2:
 				// 4장 먹기
 				eatPoo = true;
-				current_player->eat(current_player, myCard);
-				current_player->eat(current_player, topCard);
-				current_player->eat(current_player, game->visible_cards[myCard->month-1]->first->data);
-				current_player->eat(current_player, game->visible_cards[myCard->month-1]->first->next->data);
-				game->visible_cards[myCard->month-1]->klear(game->visible_cards[myCard->month-1]);
+				HPlayer_eat(current_player, myCard);
+				HPlayer_eat(current_player, topCard);
+				HPlayer_eat(current_player, game->visible_cards[myCard->month-1]->first->data);
+				HPlayer_eat(current_player, game->visible_cards[myCard->month-1]->first->next->data);
+				HDeck_clear(game->visible_cards[myCard->month-1]);
 				break;
 		}
 	}
@@ -232,7 +232,7 @@ void stealcard(HGame *game, int player_num)//상대피 뺏어오기 함수
 					for(int j=0; j<you->normDeck->size; ++j)
 					{
 						// Check All Norm Deck Card
-						if(!you->normDeck->get(you->normDeck, j)->data->isDouble)
+						if(!HDeck_get(you->normDeck, j)->data->isDouble)
 						{
 							// This part will search Non-Double Card. If there is no Non-Double, just pick one.
 							target = j;
@@ -242,7 +242,7 @@ void stealcard(HGame *game, int player_num)//상대피 뺏어오기 함수
 					
 					//쌍피만 있다면 쌍피를 가져온다
 					//쌍피만 있는게 아니라면 그냥 피를 가져온다
-					me->normDeck->drawFrom(me->normDeck, you->normDeck, target);
+					HDeck_drawFrom(me->normDeck, you->normDeck, target);
 				}
 			}
 		}

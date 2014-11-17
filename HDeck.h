@@ -43,23 +43,6 @@ typedef struct _HDeck_
 	/*
 		Member Function
 	*/
-	
-	HSlot *(*get)(struct _HDeck_ *me, int pos);
-	
-	void (*push)(struct _HDeck_ *me, HCard const *);
-	void (*pop)(struct _HDeck_ *me);
-	void (*insert)(struct _HDeck_ *me, HCard const *, int pos);
-	void (*remove)(struct _HDeck_ *me, int pos);
-	
-	void (*swap)(struct _HDeck_ *me, int pos_1, int pos_2);
-	void (*shake)(struct _HDeck_ *me);
-	void (*sort)(struct _HDeck_ *me);
-	void (*klear)(struct _HDeck_ *me);
-	
-	void (*drawFrom)(struct _HDeck_ *me, struct _HDeck_ *you, int pos);
-	void (*import)(struct _HDeck_ *me, HCard const *CARD_SET);
-	
-	void (*print)(struct _HDeck_ *me);
 } HDeck;
 
 /*

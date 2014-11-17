@@ -15,9 +15,9 @@ HSlot *new_HSlot(void)
 	// Protection
 	if(temp == NULL)
 	{
-#ifdef DEBUG
+ #ifdef DEBUG
 		printError("HDeck", "Error", "new_HSlot(void)", "Allocation Fail!!");
-#endif
+ #endif
 		return NULL;
 	}
 	else
@@ -47,9 +47,9 @@ HDeck *new_HDeck(void)
 	// Allocation Fail
 	if(temp == NULL)
 	{
-#ifdef DEBUG
+ #ifdef DEBUG
 		printError("HDeck", "Error", "new_HDeck(void)", "Allocation Fail!!");
-#endif
+ #endif
 		return NULL;
 	}
 	else
@@ -57,24 +57,6 @@ HDeck *new_HDeck(void)
 		// Member Variable Initialize
 		temp->first  = NULL;
 		temp->size   = 0;
-		
-		// Function Pointer Initialize
-		temp->get    = HDeck_get;
-		
-		temp->push   = HDeck_push;
-		temp->pop    = HDeck_pop;
-		temp->insert = HDeck_insert;
-		temp->remove = HDeck_remove;
-		
-		temp->swap   = HDeck_swap;
-		temp->shake  = HDeck_shake;
-		temp->sort   = HDeck_sort;
-		temp->klear  = HDeck_clear;
-		
-		temp->drawFrom = HDeck_drawFrom;
-		temp->import = HDeck_import;
-	
-		temp->print  = HDeck_print;
 	
 		return temp;
 	}
@@ -82,7 +64,7 @@ HDeck *new_HDeck(void)
 
 void delete_HDeck(HDeck *me)
 {
-	me->klear(me);
+	HDeck_clear(me);
 	free(me);
 }
 
@@ -91,18 +73,18 @@ HSlot *HDeck_get(HDeck *me, int pos)
 	// Protection
 	if(me == NULL)
 	{
-#ifdef DEBUG
+ #ifdef DEBUG
 		printError("HDeck", "Error", "get(HDeck *, int)", "NULL HDeck Pointer Exception!!");
-#endif
+ #endif
 	}
 	else
 	{
 		// Boundary Protection
 		if(pos < 0 || pos >= me->size)
 		{
-#ifdef DEBUG
+ #ifdef DEBUG
 			printError("HDeck", "Warning", "get(HDeck *, int)", "Wrong Position Access!!");
-#endif
+ #endif
 			return NULL;
 		}
 		else
@@ -111,9 +93,9 @@ HSlot *HDeck_get(HDeck *me, int pos)
 
 			if(temp == NULL)
 			{
-#ifdef DEBUG
+ #ifdef DEBUG
 				printError("HDeck", "Error", "get(HDeck *, int)", "->first is null but size is not 0");
-#endif
+ #endif
 				return NULL;
 			}
 			else
@@ -133,16 +115,16 @@ void HDeck_push(HDeck *me, HCard const *target)
 {
 	if(me == NULL)
 	{
-#ifdef DEBUG
+ #ifdef DEBUG
 		printError("HDeck", "Error", "push(HDeck *, HCard *)", "NULL HDeck Pointer Exception!!");
-#endif
+ #endif
 		return ;
 	}
 	else if(target == NULL)
 	{
-#ifdef DEBUG
+ #ifdef DEBUG
 		printError("HDeck", "Error", "push(HDeck *, HCard *)", "NULL HCard Pointer Exception!!");
-#endif
+ #endif
 		return ;
 	}
 	else
@@ -152,9 +134,9 @@ void HDeck_push(HDeck *me, HCard const *target)
 
 		if(new_slot == NULL)
 		{
-#ifdef DEBUG
+ #ifdef DEBUG
 			printError("HDeck", "Error", "push(HDeck *, HCard *)", "New Slot Allocation Fail");
-#endif
+ #endif
 			return ;
 		}
 		
@@ -207,9 +189,9 @@ void HDeck_pop(HDeck *me)
 	// Protection
 	if(me == NULL)
 	{
-#ifdef DEBUG
+ #ifdef DEBUG
 		printError("HDeck", "Error", "pop(HDeck *)", "NULL HDeck Pointer Exception!!");
-#endif
+ #endif
 		return ;
 	}
 	else
@@ -233,9 +215,9 @@ void HDeck_pop(HDeck *me)
 
 				if(this_slot == NULL)
 				{
-#ifdef DEBUG
+ #ifdef DEBUG
 					printError("HDeck", "Error", "pop(HDeck *)", "->first is null but size is not 0");
-#endif
+ #endif
 					return ;
 				}
 				else
@@ -280,15 +262,15 @@ void HDeck_insert(HDeck *me, HCard const *target, int pos)
 {
 	if(me == NULL)
 	{
-#ifdef DEBUG
+ #ifdef DEBUG
 		printError("HDeck", "Error", "insert(HDeck *, HCard *, int)", "NULL HDeck Pointer Exception!!");
-#endif
+ #endif
 	}
 	else if(target == NULL)
 	{
-#ifdef DEBUG
+ #ifdef DEBUG
 		printError("HDeck", "Error", "insert(HDeck *, HCard *, int)", "NULL HCard Pointer Exception!!");
-#endif
+ #endif
 	}
 	else
 	{
@@ -296,16 +278,16 @@ void HDeck_insert(HDeck *me, HCard const *target, int pos)
 		// Boundary Protection
 		if(pos < 0 || pos > me->size)
 		{
-#ifdef DEBUG
+ #ifdef DEBUG
 			printError("HDeck", "Warning", "insert(HDeck *, HCard *, int)", "Wrong Position Access!!");
-#endif
+ #endif
 			return ;
 		}
 		else
 		{
 			if(pos == me->size)
 			{
-				me->push(me, target);
+				HDeck_push(me, target);
 			}
 			else
 			{
@@ -313,9 +295,9 @@ void HDeck_insert(HDeck *me, HCard const *target, int pos)
 				HSlot *new_slot = new_HSlot();
 				if(new_slot == NULL)
 				{
-#ifdef DEBUG
+ #ifdef DEBUG
 					printError("HDeck", "Error", "insert(HDeck *, HCard *, int)", "New HSlot Allocation Fail");
-#endif
+ #endif
 				}
 				else
 				{
@@ -331,7 +313,7 @@ void HDeck_insert(HDeck *me, HCard const *target, int pos)
 					*/
 					
 					// Search Insertion Address
-					HSlot *next_slot = me->get(me, pos);
+					HSlot *next_slot = HDeck_get(me, pos);
 					HSlot *prev_slot = next_slot->prev;
 					
 					// Modify Connection
@@ -361,18 +343,18 @@ void HDeck_remove(HDeck *me, int pos)
 
 	if(me == NULL)
 	{
-#ifdef DEBUG
+ #ifdef DEBUG
 		printError("HDeck", "Error", "remove(HDeck *, HCard *, int)", "NULL HDeck Pointer Exception!!");
-#endif
+ #endif
 	}
 	else
 	{
 		// Boundary Protection
 		if(pos < 0 || pos >= me->size || me->size <= 0)
 		{
-#ifdef DEBUG
+ #ifdef DEBUG
 			printError("HDeck", "Warning", "remove(HDeck *, int)", "Wrong Position Access!!");
-#endif
+ #endif
 		}
 		else
 		{
@@ -391,9 +373,9 @@ void HDeck_remove(HDeck *me, int pos)
 				HSlot *this_slot = me->first;
 				if(this_slot == NULL)
 				{
-#ifdef DEBUG
+ #ifdef DEBUG
 					printError("HDeck", "Error", "remove(HDeck *, int)", "->first is null but size is not 0");
-#endif
+ #endif
 				}
 				else
 				{
@@ -414,12 +396,12 @@ void HDeck_remove(HDeck *me, int pos)
 				*/
 				
 				// Search Remove Address
-				HSlot *this_slot = me->get(me, pos);
+				HSlot *this_slot = HDeck_get(me, pos);
 				if(this_slot == NULL)
 				{
-#ifdef DEBUG
+ #ifdef DEBUG
 					printError("HDeck", "Error", "remove(HDeck *, int)", "->first is null but size is not 0");
-#endif
+ #endif
 				}
 				else
 				{
@@ -428,15 +410,15 @@ void HDeck_remove(HDeck *me, int pos)
 					
 					if(next_slot == NULL)
 					{
-#ifdef DEBUG
+ #ifdef DEBUG
 						printError("HDeck", "Error", "remove(HDeck *, int)", "this_slot->next is null. What the hack you did");
-#endif
+ #endif
 					}
 					else if(prev_slot == NULL)
 					{
-#ifdef DEBUG
+ #ifdef DEBUG
 						printError("HDeck", "Error", "remove(HDeck *, int)", "this_slot->prev is null. What the hack you did");
-#endif
+ #endif
 					}
 					else
 					{
@@ -466,9 +448,9 @@ void HDeck_swap(HDeck *me, int pos_1, int pos_2)
 	// Protection
 	if(me == NULL)
 	{
-#ifdef DEBUG
+ #ifdef DEBUG
 		printError("HDeck", "Error", "swap(HDeck *, int, int)", "NULL HDeck Pointer Exception!!");
-#endif
+ #endif
 	}
 	else
 	{
@@ -483,20 +465,20 @@ void HDeck_swap(HDeck *me, int pos_1, int pos_2)
 			}
 			
 			// Search for Object's Address
-			HSlot *pos_1_slot = me->get(me, pos_1);
-			HSlot *pos_2_slot = me->get(me, pos_2);
+			HSlot *pos_1_slot = HDeck_get(me, pos_1);
+			HSlot *pos_2_slot = HDeck_get(me, pos_2);
 
 			if(pos_1_slot == NULL)
 			{
-#ifdef DEBUG
+ #ifdef DEBUG
 				printError("HDeck", "Error", "swap(HDeck *, int, int)", "pos 1 is NULL");
-#endif
+ #endif
 			}
 			else if(pos_2_slot == NULL)
 			{
-#ifdef DEBUG
+ #ifdef DEBUG
 				printError("HDeck", "Error", "swap(HDeck *, int, int)", "pos 2 is NULL");
-#endif
+ #endif
 			}
 			else
 			{
@@ -513,9 +495,9 @@ void HDeck_shake(HDeck *me)
 	// Protection
 	if(me == NULL)
 	{
-#ifdef DEBUG
+ #ifdef DEBUG
 		printError("HDeck", "Error", "shake(void)", "NULL HDeck Pointer Exception!!");
-#endif
+ #endif
 		return ;
 	}
 	else
@@ -529,7 +511,7 @@ void HDeck_shake(HDeck *me)
 				int y;
 				while((y = rand()%(me->size)) == x); // Protect Duplication
 			
-				me->swap(me, x, y);
+				HDeck_swap(me, x, y);
 			}
 		}
 	}
@@ -577,9 +559,9 @@ void HDeck_sort(HDeck *me)
 {
 	if(me == NULL)
 	{
-#ifdef DEBUG
+ #ifdef DEBUG
 		printError("HDeck", "Error", "sort(HDeck *me)", "NULL HDeck Pointer Exception");
-#endif
+ #endif
 	}
 	else
 	{
@@ -587,7 +569,7 @@ void HDeck_sort(HDeck *me)
 		{
 			// Search Insertion Point
 			int current_pos = i-1;
-			HSlot *source  = me->get(me, i);
+			HSlot *source  = HDeck_get(me, i);
 			HSlot *current = source->prev;
 			
 			while(current_pos >= 0)
@@ -602,8 +584,8 @@ void HDeck_sort(HDeck *me)
 			}
 			
 			// Swap
-			me->insert(me, source->data, current_pos+1);
-			me->remove(me, i+1);
+			HDeck_insert(me, source->data, current_pos+1);
+			HDeck_remove(me, i+1);
 		}
 	}
 }
@@ -612,9 +594,9 @@ void HDeck_clear(HDeck *me)
 {
 	if(me == NULL)
 	{
-#ifdef DEBUG
+ #ifdef DEBUG
 		printError("HDeck", "Error", "klear(HDeck *)", "NULL HDeck Pointer Exception!!");
-#endif
+ #endif
 	}
 	else
 	{
@@ -622,7 +604,7 @@ void HDeck_clear(HDeck *me)
 		{
 			while(me->size > 0)
 			{
-				me->pop(me);
+				HDeck_pop(me);
 			}
 		}
 	}
@@ -632,30 +614,30 @@ void HDeck_drawFrom(HDeck *me, HDeck *you, int pos)
 {
 	if(me == NULL)
 	{
-#ifdef DEBUG
+ #ifdef DEBUG
 		printError("HDeck", "Error", "klear(HDeck *)", "NULL HDeck Pointer Exception!!");
-#endif
+ #endif
 	}
 	else if(you == NULL)
 	{
-#ifdef DEBUG
+ #ifdef DEBUG
 		printError("HDeck", "Error", "klear(HDeck *)", "NULL HDeck Pointer Exception(you)!!");
-#endif
+ #endif
 	}
 	else
 	{
-		HSlot *target = you->get(you, pos); // 목표는 누구?
+		HSlot *target = HDeck_get(you, pos); // 목표는 누구?
 
 		if(target == NULL)
 		{
-#ifdef DEBUG
+ #ifdef DEBUG
 			printError("HDeck", "Warning", "drawFrom(HDeck *, HDeck *, int)", "NULL Target Exception : Wrong Pos");
-#endif
+ #endif
 		}
 		else
 		{
-			me->push(me, target->data);
-			you->remove(you, pos);
+			HDeck_push(me, target->data);
+			HDeck_remove(you, pos);
 		}
 	}
 }
@@ -664,25 +646,25 @@ void HDeck_import(HDeck *me, HCard const *CARD_SET)
 {
 	if(me == NULL)
 	{
-#ifdef DEBUG
+ #ifdef DEBUG
 		printError("HDeck", "Error", "import(HDeck *, HCard *)", "NULL HDeck Pointer Exception!!");
-#endif
+ #endif
 	}
 	else if(CARD_SET == NULL)
 	{
-#ifdef DEBUG
+ #ifdef DEBUG
 		printError("HDeck", "Error", "import(HDeck *, HCard *)", "NULL ingredient Exception!!");
-#endif
+ #endif
 	}
 	else
 	{
 		if(me->size > 0)
 		{
-			me->klear(me);
+			HDeck_clear(me);
 		}
 		for(int i=0; i<48; ++i)
 		{
-			me->push(me, &CARD_SET[i]);
+			HDeck_push(me, &CARD_SET[i]);
 		}
 	}
 }
@@ -691,9 +673,9 @@ void HDeck_print(HDeck *me)
 {
 	if(me == NULL)
 	{
-#ifdef DEBUG
+ #ifdef DEBUG
 		printError("HDeck", "Error", "print(HDeck *)", "NULL HDeck Pointer Exception!!");
-#endif
+ #endif
 	}
 	else
 	{
@@ -706,7 +688,7 @@ void HDeck_print(HDeck *me)
 			printf("[HDeck : Note] %p's available slots(%d)\n", me, me->size);
 			for(int i=0; i<me->size; ++i)
 			{
-				hprint(me->get(me, i)->data);
+				hprint(HDeck_get(me, i)->data);
 				printf("\n");
 			}
 		}

@@ -107,23 +107,19 @@ void HGUI_window(int x1, int y1, int x2, int y2)
 		HGUI_curSet(x1, y);
 		if(y == y1 || y == y2-1)
 		{
-			HGUI_cSet(RED, FOREGROUND, DARK);
 			for(int x=x1; x<x2; ++x)
 			{
 				printf("*");
 			}
-			HGUI_cReset();
 		}
 		else
 		{
-			HGUI_cSet(RED, FOREGROUND, DARK);
 			printf("*");
 			for(int x=x1+1; x<x2-1; ++x)
 			{
 				printf(" ");
 			}
 			printf("*");
-			HGUI_cReset();
 		}
 	}
 }
@@ -146,7 +142,7 @@ void HGUI_text(int xpos, int ypos, char const *text, bool wide, int mode)
 			}
 			break;
 		case ALIGN_RIGHT:
-			HGUI_curSet(xpos-strlen(text), ypos);
+			HGUI_curSet(xpos-strlen(text)+1, ypos);
 			break;
 	}
 	printf("%s", text);
@@ -210,6 +206,37 @@ int  HGUI_menu(int xpos, int ypos, char const **strings, int m_length)
 	return pointer;
 }
 
+int HGUI_eatw(HDeck *deck)
+{
+	char LABEL[] = "What do you want to eat?[1/2]";
+	int len = strlen(LABEL);
+
+	HGUI_cSet(RED, BACKGROUND, DARK);
+	HGUI_cSet(RED, FOREGROUND, BRIGHT);
+	HGUI_window(SCR_WIDTH/2 - len/2 - 1, SCR_HEIGHT/2 - 5, SCR_WIDTH/2 + len/2 + 4, SCR_HEIGHT/2 + 5);
+
+	HGUI_cSet(WHITE, FOREGROUND, BRIGHT);
+	HGUI_text(SCR_WIDTH/2+1, SCR_HEIGHT/2 - 4, LABEL, false, ALIGN_CENTER);
+
+	for(int c=0; c<2; ++c)
+	{
+		HGUI_card(SCR_WIDTH/2 - 4 + 6*c, SCR_HEIGHT/2 - 2, HDeck_get(deck, c)->data);
+	}
+	
+	while(true)
+	{
+		switch(HGUI_getch())
+		{
+			case '1':
+				return 0;
+				break;
+			case '2':
+				return 1;
+				break;
+		}
+	}
+}
+
 void HGUI_card(int xpos, int ypos, HCard const *card)
 {
 	if(card == NULL)
@@ -220,14 +247,14 @@ void HGUI_card(int xpos, int ypos, HCard const *card)
 	}
 
 	char month_string[3] = {0};
-	sprintf(month_string, "%2d", card->month);
+	sprintf(month_string, "%d", card->month);
 	switch(card->month)
 	{
 		case 1:
 			HGUI_cSet(WHITE, BACKGROUND, BRIGHT);
 			HGUI_rect(xpos, ypos, xpos+5, ypos+5);
 
-			HGUI_cSet(BLACK, BACKGROUND, BRIGHT);
+			HGUI_cSet(BLACK, BACKGROUND, DARK);
 			HGUI_rect(xpos  , ypos+3, xpos+1, ypos+5);
 			HGUI_rect(xpos+1, ypos+2, xpos+2, ypos+5);
 			HGUI_rect(xpos+2, ypos+4, xpos+3, ypos+5);
@@ -241,17 +268,10 @@ void HGUI_card(int xpos, int ypos, HCard const *card)
 			HGUI_text(xpos+3, ypos+3, "^", false, ALIGN_LEFT);
 			HGUI_text(xpos+4, ypos+2, "^", false, ALIGN_LEFT);
 
-			HGUI_cSet(WHITE, FOREGROUND, BRIGHT);
-			HGUI_text(xpos+4, ypos+4, "1", false, ALIGN_LEFT);
-
 			if(card->type == H_GWAN)
 			{
 				HGUI_cSet(WHITE, FOREGROUND, BRIGHT);
 				HGUI_text(xpos, ypos+4, "*", false, ALIGN_LEFT);
-
-				HGUI_cSet(BLACK, BACKGROUND, DARK);
-				HGUI_cSet(WHITE, FOREGROUND, BRIGHT);
-				HGUI_text(xpos, ypos, "GWAN", false, ALIGN_LEFT);
 			}
 			break;
 		case 2:
@@ -267,9 +287,6 @@ void HGUI_card(int xpos, int ypos, HCard const *card)
 			HGUI_cSet(YELLOW, BACKGROUND, BRIGHT);
 			HGUI_rect(xpos+1, ypos+3, xpos+2, ypos+4);
 			HGUI_rect(xpos+4, ypos+4, xpos+5, ypos+5);
-
-			HGUI_cSet(BLACK, FOREGROUND, DARK);
-			HGUI_text(xpos+4, ypos+4, "2", false, ALIGN_LEFT);
 			break;
 		case 3:
 			HGUI_cSet(WHITE, BACKGROUND, BRIGHT);
@@ -280,9 +297,6 @@ void HGUI_card(int xpos, int ypos, HCard const *card)
 				HGUI_cSet(BLACK, FOREGROUND, DARK);
 				HGUI_text(xpos, ypos+4, "*", false, ALIGN_LEFT);
 
-				HGUI_cSet(BLACK, BACKGROUND, DARK);
-				HGUI_cSet(WHITE, FOREGROUND, BRIGHT);
-				HGUI_text(xpos, ypos, "GWAN", false, ALIGN_LEFT);
 			}
 
 			HGUI_cSet(MAGENTA, BACKGROUND, BRIGHT);
@@ -294,8 +308,6 @@ void HGUI_card(int xpos, int ypos, HCard const *card)
 			HGUI_cSet(MAGENTA, BACKGROUND, DARK);
 			HGUI_rect(xpos+1, ypos+3, xpos+2, ypos+4);
 			HGUI_rect(xpos+4, ypos+4, xpos+5, ypos+5);
-			HGUI_cSet(WHITE, FOREGROUND, BRIGHT);
-			HGUI_text(xpos+4, ypos+4, "3", false, ALIGN_LEFT);
 			
 			break;
 		case 4:
@@ -314,26 +326,284 @@ void HGUI_card(int xpos, int ypos, HCard const *card)
 			HGUI_text(xpos+2, ypos+2, "o", false, ALIGN_LEFT);
 			HGUI_text(xpos+2, ypos+4, "o", false, ALIGN_LEFT);
 			HGUI_text(xpos+4, ypos+3, "o", false, ALIGN_LEFT);
-
-			HGUI_text(xpos+4, ypos+4, "4", false, ALIGN_LEFT);
 			break;
 		case 5:
+			HGUI_cSet(WHITE, BACKGROUND, BRIGHT);
+			HGUI_rect(xpos, ypos, xpos+5, ypos+5);
+
+			if(card->type == H_ANIM)
+			{
+				HGUI_cSet(BLUE, BACKGROUND, BRIGHT);
+				HGUI_cSet(YELLOW, FOREGROUND, BRIGHT);
+				HGUI_text(xpos, ypos+4, "x xx", false, ALIGN_LEFT);
+			}
+			
+			HGUI_cSet(WHITE, BACKGROUND, BRIGHT);
+			HGUI_cSet(BLACK, FOREGROUND, DARK);
+			HGUI_text(xpos+1, ypos+1, "|", false, ALIGN_LEFT); // Stem 1
+			HGUI_text(xpos+1, ypos+2, "|", false, ALIGN_LEFT);
+			HGUI_text(xpos+1, ypos+3, "|", false, ALIGN_LEFT);
+			HGUI_text(xpos+1, ypos+4, "|", false, ALIGN_LEFT);
+			HGUI_text(xpos+3, ypos+4, "|", false, ALIGN_LEFT); // Stem 2
+
+			HGUI_cSet(BLUE, BACKGROUND, DARK);
+			HGUI_cSet(BLUE, FOREGROUND, BRIGHT);
+			HGUI_text(xpos  , ypos+2, "<", false, ALIGN_LEFT); // Flower 1
+			HGUI_text(xpos+2, ypos+2, ">", false, ALIGN_LEFT);
+			HGUI_text(xpos+1, ypos+1, "^", false, ALIGN_LEFT);
+			HGUI_text(xpos+1, ypos+3, "o", false, ALIGN_LEFT);
+
+			HGUI_cSet(WHITE, BACKGROUND, BRIGHT);
+			HGUI_text(xpos+3, ypos+3, "x", false, ALIGN_LEFT); // Flower 2
+
+			HGUI_cSet(YELLOW, BACKGROUND, BRIGHT);
+			HGUI_text(xpos+1, ypos+2, " ", false, ALIGN_LEFT);
 			break;
 		case 6:
+			HGUI_cSet(WHITE, BACKGROUND, BRIGHT);
+			HGUI_rect(xpos, ypos, xpos+5, ypos+5);
+			if(card->type == H_ANIM)
+			{
+				HGUI_text(xpos+3, ypos+2, ">", false, ALIGN_LEFT);
+			} // Butter Fly Center
+
+			HGUI_cSet(RED  , BACKGROUND, DARK);
+			HGUI_cSet(YELLOW, FOREGROUND, DARK);
+			HGUI_rect(xpos+1, ypos+2, xpos+3, ypos+4);
+			if(card->type == H_ANIM)
+			{
+				HGUI_text(xpos+1, ypos+2, "<", false, ALIGN_LEFT); // Butter Fly Left
+				HGUI_text(xpos+2, ypos+3, "|", false, ALIGN_LEFT);
+			} // Butter Fly Center
+
+			HGUI_cSet(RED  , BACKGROUND, BRIGHT);
+			HGUI_rect(xpos+1, ypos+3, xpos+2, ypos+4);
+			HGUI_rect(xpos+2, ypos+2, xpos+3, ypos+3);
+			if(card->type == H_ANIM)
+			{
+				HGUI_text(xpos+2, ypos+2, "#", false, ALIGN_LEFT); // Butter Fly Center
+			} // Butter Fly Center
+
+			HGUI_cSet(BLACK, BACKGROUND, DARK);
+			HGUI_cSet(BLACK, FOREGROUND, BRIGHT);
+			HGUI_text(xpos, ypos+1, "\\", false, ALIGN_LEFT);
+			HGUI_text(xpos, ypos+4, "/", false, ALIGN_LEFT);
+			HGUI_text(xpos+3, ypos+1, "/", false, ALIGN_LEFT);
+			HGUI_text(xpos+3, ypos+4, "\\", false, ALIGN_LEFT);
 			break;
 		case 7:
+			HGUI_cSet(WHITE, BACKGROUND, BRIGHT);
+			HGUI_rect(xpos, ypos, xpos+5, ypos+5);
+
+			HGUI_cSet(BLACK, FOREGROUND, DARK);
+			HGUI_text(xpos+1, ypos+1, "|", false, ALIGN_LEFT);
+			HGUI_text(xpos+1, ypos+2, "|", false, ALIGN_LEFT);
+			HGUI_text(xpos+1, ypos+3, "|", false, ALIGN_LEFT);
+			HGUI_text(xpos+1, ypos+4, "|", false, ALIGN_LEFT);
+			HGUI_text(xpos+3, ypos+3, "|", false, ALIGN_LEFT);
+			HGUI_text(xpos+3, ypos+4, "|", false, ALIGN_LEFT);
+			HGUI_text(xpos  , ypos+1, "o", false, ALIGN_LEFT);
+			HGUI_text(xpos+2, ypos+4, "o", false, ALIGN_LEFT);
+
+			HGUI_cSet(RED   , FOREGROUND, BRIGHT);
+			HGUI_text(xpos  , ypos+3, "o", false, ALIGN_LEFT);
+			HGUI_text(xpos+2, ypos+2, "o", false, ALIGN_LEFT);
+			HGUI_text(xpos+4, ypos+3, "o", false, ALIGN_LEFT);
 			break;
 		case 8:
+			if(card->type != H_GWAN)
+			{
+				HGUI_cSet(WHITE, BACKGROUND, BRIGHT);
+			}
+			else
+			{
+				HGUI_cSet(RED, BACKGROUND, DARK);
+			}
+			HGUI_rect(xpos, ypos, xpos+5, ypos+3);
+
+			HGUI_cSet(WHITE, FOREGROUND, BRIGHT);
+			HGUI_text(xpos+1, ypos+1, "+", false, ALIGN_LEFT);
+			HGUI_text(xpos+2, ypos+1, "-", false, ALIGN_LEFT);
+			HGUI_text(xpos+3, ypos+1, "+", false, ALIGN_LEFT);
+			HGUI_text(xpos+1, ypos+2, "+", false, ALIGN_LEFT);
+			HGUI_text(xpos+2, ypos+2, "-", false, ALIGN_LEFT);
+			HGUI_text(xpos+3, ypos+2, "+", false, ALIGN_LEFT);
+
+			HGUI_cSet(BLACK, BACKGROUND, DARK);
+			HGUI_rect(xpos, ypos+3, xpos+5, ypos+5);
+			
+			if(card->type == H_GWAN)
+			{
+				HGUI_text(xpos, ypos+4, "*", false, ALIGN_LEFT);
+			}
 			break;
 		case 9:
+			HGUI_cSet(WHITE, BACKGROUND, BRIGHT);
+			HGUI_rect(xpos, ypos, xpos+5, ypos+5);
+
+			if(card->type == H_ANIM)
+			{
+				HGUI_cSet(BLUE, BACKGROUND, BRIGHT);
+				HGUI_cSet(BLUE, FOREGROUND, DARK);
+				HGUI_text(xpos, ypos+4, "~", false, ALIGN_LEFT);
+				HGUI_text(xpos+1, ypos+4, "~", false, ALIGN_LEFT);
+				HGUI_text(xpos+2, ypos+4, "~", false, ALIGN_LEFT);
+				HGUI_text(xpos+3, ypos+4, "~", false, ALIGN_LEFT);
+				HGUI_text(xpos+4, ypos+4, "~", false, ALIGN_LEFT);
+				HGUI_text(xpos, ypos+3, "~", false, ALIGN_LEFT);
+				HGUI_text(xpos+1, ypos+3, "~", false, ALIGN_LEFT);
+				HGUI_text(xpos+2, ypos+3, "~", false, ALIGN_LEFT);
+				HGUI_text(xpos+3, ypos+3, "~", false, ALIGN_LEFT);
+				HGUI_text(xpos+4, ypos+3, "~", false, ALIGN_LEFT);
+			}
+
+			HGUI_cSet(BLACK, BACKGROUND, DARK);
+			HGUI_cSet(BLACK, FOREGROUND, BRIGHT);
+			HGUI_text(xpos  , ypos+4, "o", false, ALIGN_LEFT);
+			HGUI_text(xpos+3, ypos+3, "o", false, ALIGN_LEFT);
+			HGUI_cSet(WHITE, BACKGROUND, BRIGHT);
+			HGUI_text(xpos+1, ypos+2, "|", false, ALIGN_LEFT);
+			
+			
+			HGUI_cSet(YELLOW, BACKGROUND, BRIGHT);
+			HGUI_cSet(RED, FOREGROUND, DARK);
+			HGUI_text(xpos+1, ypos+4, "*", false, ALIGN_LEFT);
+			HGUI_text(xpos+2, ypos+3, "*", false, ALIGN_LEFT);
+			HGUI_text(xpos+1, ypos+1, "*", false, ALIGN_LEFT);
+			HGUI_cSet(RED, BACKGROUND, BRIGHT);
+			HGUI_cSet(YELLOW, FOREGROUND, DARK);
+			HGUI_text(xpos+1, ypos+3, "*", false, ALIGN_LEFT);
+			HGUI_text(xpos+2, ypos+4, "*", false, ALIGN_LEFT);
+			HGUI_text(xpos+2, ypos+1, "*", false, ALIGN_LEFT);
 			break;
 		case 10:
+			HGUI_cSet(WHITE, BACKGROUND, BRIGHT);
+			HGUI_rect(xpos, ypos, xpos+5, ypos+5);
+
+			HGUI_cSet(RED, FOREGROUND, BRIGHT);
+			HGUI_text(xpos+0, ypos+3, "*", false, ALIGN_LEFT);
+			HGUI_text(xpos+1, ypos+2, "*", false, ALIGN_LEFT);
+			HGUI_text(xpos+3, ypos+4, "*", false, ALIGN_LEFT);
+
+			HGUI_cSet(YELLOW, FOREGROUND, DARK);
+			HGUI_text(xpos+2, ypos+3, "*", false, ALIGN_LEFT);
+			HGUI_text(xpos+0, ypos+1, "*", false, ALIGN_LEFT);
+			HGUI_text(xpos+4, ypos+2, "*", false, ALIGN_LEFT);
+
+			HGUI_cSet(RED, FOREGROUND, DARK);
+			HGUI_text(xpos+1, ypos+4, "*", false, ALIGN_LEFT);
+			HGUI_text(xpos+4, ypos+3, "*", false, ALIGN_LEFT);
+			HGUI_text(xpos+2, ypos+2, "*", false, ALIGN_LEFT);
+
+			if(card->type == H_ANIM) // Draw Dear
+			{
+				HGUI_cSet(WHITE, BACKGROUND, BRIGHT);
+				HGUI_cSet(YELLOW, FOREGROUND, DARK);
+				HGUI_text(xpos, ypos+2, "<", false, ALIGN_LEFT); // Nose
+				HGUI_cSet(YELLOW, BACKGROUND, DARK);
+				HGUI_rect(xpos+1, ypos+3, xpos+4, ypos+4); // Body
+				HGUI_rect(xpos+1, ypos+2, xpos+2, ypos+3); // Head
+				HGUI_cSet(BLACK, FOREGROUND, DARK);
+				HGUI_text(xpos+1, ypos+2, ".", false, ALIGN_LEFT); // Eye
+				HGUI_cSet(WHITE, BACKGROUND, BRIGHT);
+				HGUI_cSet(YELLOW, FOREGROUND, DARK);
+				HGUI_text(xpos+1, ypos+4, "| |", false, ALIGN_LEFT); // LEG
+			}
 			break;
 		case 11:
+			if(card->isDouble)
+			{
+				HGUI_cSet(RED, BACKGROUND, DARK);
+				HGUI_rect(xpos, ypos, xpos+5, ypos+5);
+				HGUI_cSet(WHITE, BACKGROUND, BRIGHT);
+				HGUI_rect(xpos, ypos, xpos+5, ypos+2);
+			}
+			else
+			{
+				HGUI_cSet(WHITE, BACKGROUND, BRIGHT);
+				HGUI_rect(xpos, ypos, xpos+5, ypos+5);
+			}
+			
+
+			HGUI_cSet(BLACK, FOREGROUND, DARK);
+			if(card->type == H_GWAN)
+			{
+				HGUI_text(xpos, ypos+4, "*", false, ALIGN_LEFT);
+			}
+			HGUI_text(xpos+1, ypos+1, "|", false, ALIGN_LEFT); // Stem1
+			if(card->isDouble)
+			{
+				HGUI_cSet(RED, BACKGROUND, DARK);
+			}
+			HGUI_text(xpos+1, ypos+2, "|", false, ALIGN_LEFT);
+			HGUI_text(xpos+3, ypos+2, "|", false, ALIGN_LEFT); // Stem2
+			HGUI_cSet(WHITE, BACKGROUND, BRIGHT);
+			HGUI_cSet(BLUE  , FOREGROUND, BRIGHT);
+			HGUI_text(xpos+2, ypos+1, "*", false, ALIGN_LEFT);
+			if(card->isDouble)
+			{
+				HGUI_cSet(RED, BACKGROUND, DARK);
+			}
+			HGUI_text(xpos  , ypos+2, "*", false, ALIGN_LEFT);
+			
+
+			HGUI_cSet(BLACK, BACKGROUND, DARK); // Poo
+			HGUI_cSet(BLACK, FOREGROUND, BRIGHT);
+			HGUI_text(xpos+1, ypos+2, "^", false, ALIGN_LEFT);
+			HGUI_text(xpos+0, ypos+3, "<", false, ALIGN_LEFT);
+			HGUI_text(xpos+1, ypos+3, "^", false, ALIGN_LEFT);
+			HGUI_text(xpos+2, ypos+3, "^", false, ALIGN_LEFT);
+			HGUI_text(xpos+3, ypos+3, ">", false, ALIGN_LEFT);
+			HGUI_text(xpos+2, ypos+4, "v", false, ALIGN_LEFT);
 			break;
 		case 12:
+			HGUI_cSet(WHITE, BACKGROUND, BRIGHT);
+			HGUI_rect(xpos, ypos, xpos+5, ypos+5);
+
+			if(card->type == H_GWAN)
+			{
+				HGUI_cSet(RED, FOREGROUND, BRIGHT);
+				HGUI_text(xpos+2, ypos+2, "o", false, ALIGN_LEFT);
+				HGUI_text(xpos+2, ypos+3, "T", false, ALIGN_LEFT);
+				HGUI_text(xpos+2, ypos+4, "^", false, ALIGN_LEFT);
+			}
+
+			HGUI_cSet(BLACK, FOREGROUND, BRIGHT);
+			HGUI_text(xpos+0, ypos+2, "\\", false, ALIGN_LEFT); // Rain
+			HGUI_text(xpos+1, ypos+1, "\\", false, ALIGN_LEFT);
+			HGUI_text(xpos+3, ypos+2, "/", false, ALIGN_LEFT);
+			HGUI_text(xpos+4, ypos+3, "/", false, ALIGN_LEFT);
+
+			HGUI_cSet(BLACK, BACKGROUND, DARK);
+			HGUI_text(xpos+0, ypos+0, "O", false, ALIGN_LEFT); // Cloud Left
+			if(card->type == H_GWAN)
+			{
+				HGUI_cSet(WHITE, FOREGROUND, BRIGHT);
+				HGUI_text(xpos+0, ypos+1, "*", false, ALIGN_LEFT);
+				HGUI_cSet(BLACK, FOREGROUND, BRIGHT);
+			}
+			else
+			{
+				HGUI_text(xpos+0, ypos+1, "O", false, ALIGN_LEFT);
+			}
+			HGUI_text(xpos+1, ypos+0, "O", false, ALIGN_LEFT);
+			HGUI_text(xpos+3, ypos+0, "O", false, ALIGN_LEFT); // Cloud Right
+			HGUI_text(xpos+3, ypos+1, "O", false, ALIGN_LEFT);
+			HGUI_text(xpos+4, ypos+0, "O", false, ALIGN_LEFT);
+			HGUI_text(xpos+4, ypos+1, "O", false, ALIGN_LEFT);
+			HGUI_text(xpos+4, ypos+2, "O", false, ALIGN_LEFT);
+
 			break;
 	}
+	if(card->type == H_GWAN)
+	{
+		HGUI_cSet(BLACK, BACKGROUND, DARK);
+		HGUI_cSet(WHITE, FOREGROUND, BRIGHT);
+		HGUI_text(xpos, ypos, "GWAN", false, ALIGN_LEFT);
+	}
+	HGUI_cSet(BLACK, BACKGROUND, DARK);
+	HGUI_cSet(RED  , FOREGROUND, BRIGHT);
+	HGUI_text(xpos+4, ypos+4, month_string, false, ALIGN_RIGHT);
 	HGUI_cReset();
 
 	// Draw DDII

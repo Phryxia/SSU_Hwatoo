@@ -38,9 +38,6 @@ HPlayer *new_HPlayer(void)
 		me->score_line  = 0;
 		me->score_gwan  = 0;
 		
-		me->setName     = HPlayer_setName;
-		me->eat         = HPlayer_eat;
-		
 		return me;
 	}
 }
@@ -92,16 +89,16 @@ void HPlayer_eat(HPlayer *me, HCard const *card)
 		switch(card->type)
 		{
 			case H_NORM:
-				me->normDeck->push(me->normDeck, card);
+				HDeck_push(me->normDeck, card);
 				break;
 			case H_ANIM:
-				me->animDeck->push(me->animDeck, card);
+				HDeck_push(me->animDeck, card);
 				break;
 			case H_LINE:
-				me->lineDeck->push(me->lineDeck, card);
+				HDeck_push(me->lineDeck, card);
 				break;
 			case H_GWAN:
-				me->gwanDeck->push(me->gwanDeck, card);
+				HDeck_push(me->gwanDeck, card);
 				break;
 		}
 	}

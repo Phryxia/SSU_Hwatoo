@@ -3,8 +3,10 @@
 
 #include <stdbool.h>
 #include "HCard.h"
+#include "HDeck.h"
 
-//#define setCursor(x, y) printf("\e["#y";"#x"f")
+#define SCR_WIDTH  45
+#define SCR_HEIGHT 41
 
 #define FDCOLOR(x) "\e[3"#x"m"
 #define FBCOLOR(x) "\e[9"#x"m"
@@ -41,6 +43,7 @@ void HGUI_window(int x1, int y1, int x2, int y2);
 void HGUI_text(int xpos, int ypos, char const *text, bool wide, int mode); // Center Allign
 
 int  HGUI_menu(int xpos, int ypos, char const **, int m_length); // Center Biased xpos.
+int  HGUI_eatw(HDeck *deck);
 void HGUI_card(int xpos, int ypos, HCard const *card);
 
 #define CARD_WIDTH  5

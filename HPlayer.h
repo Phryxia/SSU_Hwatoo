@@ -7,7 +7,6 @@
 /*
 	HPlayer.h will provide Player's Information.
 	
-	Constructed by : Kwon Se Kyu
 	Attribution by : Nho Je Seung
 */
 typedef struct _HPlayer_

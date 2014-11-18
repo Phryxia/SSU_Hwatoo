@@ -15,15 +15,15 @@ HGame *new_HGame(HCard const *CARD_SET) // todo
 
 	if(me == NULL)
 	{
-#ifdef DEBUG
+ #ifdef DEBUG
 		printError("HGame", "Error", "new_HGame(HCard *)", "Allocation Fail!!");
-#endif
+ #endif
 	}
 	else if(CARD_SET == NULL)
 	{
-#ifdef DEBUG
+ #ifdef DEBUG
 		printError("HGame", "Error", "new_HGame(HCard *)", "No Card Set Available!!");
-#endif
+ #endif
 	}
 	else
 	{
@@ -37,7 +37,7 @@ HGame *new_HGame(HCard const *CARD_SET) // todo
 		{
 			(me->visible_cards)[i] = new_HDeck();
 		}
-		me->now_turn = 0;
+		me->display_cards = new_HDeck();
 
 		me->marker_stack_size = 0;
 		me->was_nagari = false;
@@ -150,13 +150,13 @@ void HGame_setTurn(HGame *me, HPlayer *who_win)
 	}
 }
 
-void HGame_draw(HGame *me)
+void HGame_draw(HGame *me, int selector)
 {
 	if(me == NULL)
 	{
-#ifdef DEBUG
+ #ifdef DEBUG
 		printError("HGame", "Error", "draw(HGame *)", "Cannot draw this game : NULL");
-#endif
+ #endif
 		return ;
 	}
 	HGUI_erase();
@@ -164,7 +164,30 @@ void HGame_draw(HGame *me)
 	// Draw the Window
 	for(int i=0; i<4; ++i)
 	{
-		HGUI_window(1, 1+10*i, 46, 1+10*(i+1));
+		HGUI_window(1, 1+10*i, 46, 10*(i+1)+2);
+		
+		// Grid Pattern
+		for(int y=0; y<9; ++y)
+		{
+			for(int x=0; x<43; ++x)
+			{
+				if((x+y)%2 == 0)
+				{
+					HGUI_cSet(BLACK, BACKGROUND, DARK);
+					HGUI_cSet(BLACK, FOREGROUND, BRIGHT);
+				}
+				else
+				{
+					HGUI_cSet(BLACK, BACKGROUND, DARK);
+					HGUI_cSet(BLACK, FOREGROUND, DARK);
+				}
+				
+				//HGUI_rect(2+x, 2+10*i+y, 3+x, 3+10*i+y);
+				HGUI_text(x+2, 2 + 10*i + y, ".", false, ALIGN_LEFT);
+			}
+		}
+		//HGUI_rect(2, 2+10*i, 45, 10*(i+1)+1);
+		HGUI_cReset();
 	}
 
 	// Order List
@@ -173,15 +196,42 @@ void HGame_draw(HGame *me)
 	// Draw Game Cards
 	HGUI_text(3, 3, "GAME CARD AREA", false, ALIGN_LEFT);
 
+	// Gather the Card from different slot
+	int x_cnt = 0;
+	int y_cnt = 0;
+	HCard const *crnt_card = NULL;
+	HCard const *prev_card = NULL;
+	for(int c=0; c<(me->display_cards)->size; ++c)
+	{
+		crnt_card = HDeck_get(me->display_cards, c)->data;
+
+		// Stack Same Month Card
+		if(c > 0)
+		{
+			if(prev_card->month == crnt_card->month)
+			{
+				++y_cnt;
+			}
+			else
+			{
+				++x_cnt;
+				y_cnt = 0;
+			}
+		}
+		HGUI_card(3 + (CARD_WIDTH+1)*x_cnt, 5 - y_cnt, crnt_card);
+		prev_card = crnt_card;
+	}
+
 	// Draw Player's Cards
-	int pbias_y = 11;
+	int pbias_y = 12;
 	int pbias_x = 3;
 	for(int i=0; i<3; ++i)
 	{
 		// Name
 		HGUI_curSet(pbias_x, pbias_y+10*i+1);
-		if(me->now_turn == i)
+		if(me->current_player_num == i)
 		{
+			// When Selected Turns
 			HGUI_cSet(RED, BACKGROUND, DARK);
 			HGUI_cSet(BLACK, FOREGROUND, DARK);
 		}
@@ -190,11 +240,63 @@ void HGame_draw(HGame *me)
 			HGUI_cReset();
 		}
 		printf("PLAYER %d : %s", i+1, (me->player)[i]->name);
+		
+		// Score
+		char score_string[32];
+		sprintf(score_string, "Score : %3d", (me->player)[i]->score);
+		HGUI_text(pbias_x + 16, pbias_y + 10*i +1, score_string, false, ALIGN_LEFT);
 		HGUI_cReset();
 
+		// Player's Deck Output
 		for(int c=0; c<(me->player)[i]->myDeck->size; ++c)
 		{
 			HGUI_card(pbias_x + (CARD_WIDTH+1)*c, pbias_y+10*i+3, HDeck_get((me->player)[i]->myDeck, c)->data);
+			HGUI_cSet(YELLOW, FOREGROUND, BRIGHT);
+			if(selector == c && me->current_player_num == i)
+			{
+				HGUI_text(pbias_x + (CARD_WIDTH+1)*c + 0, pbias_y+10*i + 8, "^", false, ALIGN_LEFT);
+				HGUI_text(pbias_x + (CARD_WIDTH+1)*c + 2, pbias_y+10*i + 8, "^", false, ALIGN_LEFT);
+				HGUI_text(pbias_x + (CARD_WIDTH+1)*c + 4, pbias_y+10*i + 8, "^", false, ALIGN_LEFT);
+			}
+			else
+			{
+				HGUI_text(pbias_x + (CARD_WIDTH+1)*c + 0, pbias_y+10*i + 8, " ", false, ALIGN_LEFT);
+				HGUI_text(pbias_x + (CARD_WIDTH+1)*c + 2, pbias_y+10*i + 8, " ", false, ALIGN_LEFT);
+				HGUI_text(pbias_x + (CARD_WIDTH+1)*c + 4, pbias_y+10*i + 8, " ", false, ALIGN_LEFT);
+			}
+			HGUI_cReset();
 		}
 	}
+}
+
+void HGame_refresh(HGame *me)
+{
+	HDeck_clear(me->display_cards);
+	for(int m=0; m<12; ++m)
+	{
+		// Gather from m th month
+		for(int c=0; c<(me->visible_cards)[m]->size; ++c)
+		{
+			HDeck_push(me->display_cards, HDeck_get((me->visible_cards)[m], c)->data);
+		}
+	}
+}
+
+void HGame_initTurn(HGame *me)
+{
+	me->current_player_num = 0;
+	me->current_player     = (me->player)[me->current_player_num];
+}
+
+void HGame_moveTurn(HGame *me)
+{
+	if(me->current_player_num < 2)
+	{
+		++(me->current_player_num);
+	}
+	else
+	{
+		me->current_player_num = 0;
+	}
+	me->current_player = (me->player)[me->current_player_num];
 }

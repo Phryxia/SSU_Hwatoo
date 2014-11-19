@@ -119,28 +119,30 @@ void delete_HCard(HCard *card)
 
 bool HCard_isBird(HCard const *card)
 {
-#ifdef DEBUG
 	if(card == NULL)
 	{
+ #ifdef DEBUG
 		printError("HCard", "Error", "isBird(HCard *)", "NULL HCard Pointer Exception!!");
-	}
-#endif
-
-	if(card->type == H_ANIM)
-	{
-		switch(card->month)
-		{
-			case 2:
-			case 4:
-			case 8:
-				return true;
-			default:
-				return false;
-		}
+ #endif
 	}
 	else
 	{
-		return false;
+		if(card->type == H_ANIM)
+		{
+			switch(card->month)
+			{
+				case 2:
+				case 4:
+				case 8:
+					return true;
+				default:
+					return false;
+			}
+		}
+		else
+		{
+			return false;
+		}
 	}
 }
 

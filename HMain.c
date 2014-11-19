@@ -7,6 +7,7 @@
 #include "HPlayer.h"
 #include "HGame.h"
 #include "HGUI.h"
+#include "Renderer.h"
 #include "Debug_Center.h"
 
 void doGame(HGame *game);
@@ -92,18 +93,16 @@ void doGame(HGame *game)//전체게임함수
 	// Initialize Player Turn
 	HGame_initTurn(game);
 	bool continue_game = true;
+
+	// First Draw
+	Renderer_game(game, card_pointer);
+
 	while(continue_game)
 	{
-		// First Draw
-		HGame_draw(game, card_pointer);
-
 		//인터페이스 : e(exit), b(잔고), h(키설명),save(저장).load
 		bool isSelecting = true;
 		while(isSelecting)
 		{
-			// Draw
-			HGame_draw(game, card_pointer);
-	
 			// Get Key Input
 			int temp = HGUI_getch();
 			switch(temp)
@@ -113,6 +112,7 @@ void doGame(HGame *game)//전체게임함수
 					if(card_pointer > 0)
 					{
 						--card_pointer;
+						Renderer_game(game, card_pointer);
 					}
 					break;
 				case 'd':
@@ -120,7 +120,12 @@ void doGame(HGame *game)//전체게임함수
 					if(card_pointer < game->current_player->myDeck->size-1)
 					{
 						++card_pointer;
+						Renderer_game(game, card_pointer);
 					}
+					break;
+				case '9':
+					Renderer_apChange(game->current_player);
+					Renderer_game(game, card_pointer);
 					break;
 				case '\n':
 					// Enter
@@ -137,7 +142,7 @@ void doGame(HGame *game)//전체게임함수
 					// Help
 					break;
 				default:
-					if(1 <= temp-'0' && temp-'0' <= 7)
+					if(1 <= temp-'0' && temp-'0' <= 7 && temp-'0' <= game->current_player->myDeck->size)
 					{
 						card_pointer = temp-'0'-1;
 					}
@@ -159,6 +164,8 @@ void doGame(HGame *game)//전체게임함수
 
 		//턴 넘기기
 		HGame_moveTurn(game);
+		card_pointer = 0;
+		Renderer_game(game, card_pointer);
 	}
 }
 
@@ -184,6 +191,7 @@ void eat(HGame *game) //자기턴진행함수
 	{
 		// New card from the Main Deck is same with myCard
 		HDeck *target = (game->visible_cards)[myCard->month-1];
+		
 		switch(target->size)
 		{
 			case 0:
@@ -192,12 +200,14 @@ void eat(HGame *game) //자기턴진행함수
 				hasZok = true;
 				HPlayer_eat(game->current_player, myCard);
 				HPlayer_eat(game->current_player, topCard);
+				HPlayer_setState(game->current_player, "쪽 !");
 				break;
 			case 1:
 				// POO
 				hasPoo = true;
 				HDeck_push(target, myCard);
 				HDeck_push(target, topCard);
+				HPlayer_setState(game->current_player, "쌌다 !");
 				break;
 			case 2:
 				// 4장 먹기
@@ -230,19 +240,20 @@ void eat(HGame *game) //자기턴진행함수
 				break;
 			case 2:
 				// You have to select the card
-				sel_num = HGUI_eatw(target);
+				sel_num = Renderer_eatw(target);
 				HPlayer_eat(game->current_player, HDeck_get(target, sel_num)->data);
 				HDeck_remove(target, sel_num);
 				break;
 			case 3:
 				// Eat the Poo!!!
 				eatPoo = true;
-				for(int i=0; i<4; ++i)
+				for(int i=0; i<3; ++i)
 				{
 					HPlayer_eat(game->current_player, HDeck_get(target, i)->data);
 				}
 				HPlayer_eat(game->current_player, myCard);
 				HDeck_clear(target);
+				HPlayer_setState(game->current_player, "올ㅋ");
 				break;
 		}
 
@@ -262,19 +273,20 @@ void eat(HGame *game) //자기턴진행함수
 				break;
 			case 2:
 				// You have to select the card
-				sel_num = HGUI_eatw(target);
+				sel_num = Renderer_eatw(target);
 				HPlayer_eat(game->current_player, HDeck_get(target, sel_num)->data);
 				HDeck_remove(target, sel_num);
 				break;
 			case 3:
 				// Eat the Poo!!!
 				eatPoo = true;
-				for(int i=0; i<4; ++i)
+				for(int i=0; i<3; ++i)
 				{
-					HPlayer_eat(game->current_player, HDeck_get(target, 0)->data);
+					HPlayer_eat(game->current_player, HDeck_get(target, i)->data);
 				}
 				HPlayer_eat(game->current_player, topCard);
 				HDeck_clear(target);
+				HPlayer_setState(game->current_player, "개이득");
 				break;
 		}
 	}

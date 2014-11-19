@@ -62,7 +62,8 @@ void   HDeck_remove(HDeck *me, int pos);
 
 void   HDeck_swap(HDeck *me, int pos_1, int pos_2);
 void   HDeck_shake(HDeck *me);           // This will shake holding cards.
-void   HDeck_sort(HDeck *me); // Using 
+void   HDeck_sort(HDeck *me); // General Sort by month, type, fivetype
+void   HDeck_lsort(HDeck *me); // Special Sort by fivetype
 void   HDeck_clear(HDeck *me); // Reset Deck but not de-allocate.
 
 void   HDeck_drawFrom(HDeck *me, HDeck *you, int pos); // Move a card from one deck to this.

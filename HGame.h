@@ -27,6 +27,10 @@ typedef struct _HGame_
 	int  marker_stack[12]; // This stores duplicated cards' index at visible_cards
 	int  marker_stack_size;
 	bool was_nagari;      // Was Prev Game Nagari???
+
+	/*
+		GUI Factor
+	*/
 } HGame;
 
 HGame *new_HGame(HCard const *CARD_SET);

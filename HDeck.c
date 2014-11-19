@@ -555,7 +555,34 @@ int _Hcomp(HCard const *x, HCard const *y)
 	}
 }
 
-void HDeck_sort(HDeck *me)
+int _Hlcomp(HCard const *x, HCard const *y)
+{
+	if(x->five_type > y->five_type)
+	{
+		return 1;
+	}
+	else if(x->five_type == y->five_type)
+	{
+		if(x->month > y->month)
+		{
+			return 1;
+		}
+		else if(x->month == y->month)
+		{
+			return 0;
+		}
+		else
+		{
+			return -1;
+		}
+	}
+	else
+	{
+		return -1;
+	}
+}
+
+void _HDeck_sort(HDeck *me, int (*sort)(HCard const *, HCard const*))
 {
 	if(me == NULL)
 	{
@@ -574,7 +601,7 @@ void HDeck_sort(HDeck *me)
 			
 			while(current_pos >= 0)
 			{
-				if(_Hcomp(source->data, current->data) >= 0)
+				if(sort(source->data, current->data) >= 0)
 				{
 					break;
 				}
@@ -588,6 +615,16 @@ void HDeck_sort(HDeck *me)
 			HDeck_remove(me, i+1);
 		}
 	}
+}
+
+void HDeck_sort(HDeck *me)
+{
+	_HDeck_sort(me, _Hcomp);
+}
+
+void HDeck_lsort(HDeck *me)
+{
+	_HDeck_sort(me, _Hlcomp);
 }
 
 void HDeck_clear(HDeck *me)

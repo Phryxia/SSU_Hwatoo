@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <malloc.h>
 #include <string.h>
+#include <stdbool.h>
 #include "HCard.h"
 #include "HDeck.h"
 #include "HPlayer.h"
@@ -12,9 +13,9 @@ HPlayer *new_HPlayer(void)
 
 	if(me == NULL)
 	{
-#ifdef DEBUG
+ #ifdef DEBUG
 		printError("HPlayer", "Error", "new_HPlayer(void)", "Allocation Fail!!");
-#endif
+ #endif
 		return NULL;
 	}
 	else
@@ -37,6 +38,8 @@ HPlayer *new_HPlayer(void)
 		me->score_anim  = 0;
 		me->score_line  = 0;
 		me->score_gwan  = 0;
+
+		me->hasChangeAP = false;
 		
 		return me;
 	}
@@ -59,9 +62,9 @@ void HPlayer_setName(HPlayer *me, char const *_name)
 {
 	if(me == NULL)
 	{
-#ifdef DEBUG
+ #ifdef DEBUG
 		printError("HPlayer", "Error", "setName(HPlayer *, char const *)", "NULL HPlayer Pointer Exception!!");
-#endif
+ #endif
 	}
 	else
 	{
@@ -70,19 +73,34 @@ void HPlayer_setName(HPlayer *me, char const *_name)
 	}
 }
 
+void HPlayer_setState(HPlayer *me, char const *state)
+{
+	if(me == NULL)
+	{
+ #ifdef DEBUG
+		printError("HPlayer", "Error", "setState(HPlayer *, char const *)", "NULL HPlayer Pointer Exception!!");
+ #endif
+	}
+	else
+	{
+		strncpy(me->last_state, state, 19);
+		me->name[19] = '\0';
+	}
+}
+
 void HPlayer_eat(HPlayer *me, HCard const *card)
 {
 	if(me == NULL)
 	{
-#ifdef DEBUG
+ #ifdef DEBUG
 		printError("HPlayer", "Error", "eat(HPlayer *, HCard *)", "NULL HPlayer Exception");
-#endif
+ #endif
 	}
 	else if(card == NULL)
 	{
-#ifdef DEBUG
+ #ifdef DEBUG
 		printError("HPlayer", "Error", "eat(HPlayer *, HCard *)", "NULL HCard Exception");
-#endif
+ #endif
 	}
 	else
 	{
@@ -92,7 +110,15 @@ void HPlayer_eat(HPlayer *me, HCard const *card)
 				HDeck_push(me->normDeck, card);
 				break;
 			case H_ANIM:
-				HDeck_push(me->animDeck, card);
+				// 9 Animal is default for Norm Card
+				if(card->month == 9)
+				{
+					HDeck_push(me->normDeck, card);
+				}
+				else
+				{
+					HDeck_push(me->animDeck, card);
+				}
 				break;
 			case H_LINE:
 				HDeck_push(me->lineDeck, card);

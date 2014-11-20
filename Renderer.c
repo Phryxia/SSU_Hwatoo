@@ -1,4 +1,6 @@
+#include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 #include "HCard.h"
 #include "HDeck.h"
 #include "HPlayer.h"
@@ -441,28 +443,45 @@ void Renderer_card(int xpos, int ypos, HCard const *card)
 
 void Renderer_cardsmall(int xpos, int ypos, HCard const *card)
 {
+	/*
+		Draw Small Card
+
+		This is discriminated by several colors.
+		And they has some special alphabets.
+	*/
 	HGUI_cSet(RED, BACKGROUND, DARK);
 	HGUI_cSet(WHITE, FOREGROUND, BRIGHT);
 	HGUI_rect(xpos, ypos, xpos+2, ypos+2);
+
+	char month_string[3];
+	sprintf(month_string, "%d", card->month);
 
 	switch(card->type)
 	{
 		case H_NORM:
 			if(card->isDouble)
 			{
+				HGUI_cSet(BLUE, FOREGROUND, BRIGHT);
 				HGUI_text(xpos+1, ypos, "D", false, ALIGN_LEFT);
 			}
+			HGUI_text(xpos+1, ypos+1, month_string, false, ALIGN_RIGHT);
 			break;
+
 		case H_ANIM:
 			if(HCard_isBird(card))
 			{
+				HGUI_cSet(YELLOW, FOREGROUND, BRIGHT);
 				HGUI_text(xpos, ypos, "B", false, ALIGN_LEFT);
+				HGUI_text(xpos+1, ypos+1, month_string, false, ALIGN_RIGHT);
 			}
 			else
 			{
+				HGUI_cSet(GREEN, FOREGROUND, BRIGHT);
 				HGUI_text(xpos, ypos, "A", false, ALIGN_LEFT);
+				HGUI_text(xpos+1, ypos+1, month_string, false, ALIGN_RIGHT);
 			}
 			break;
+
 		case H_LINE:
 			if(card->five_type == HF_RED)
 			{
@@ -482,19 +501,15 @@ void Renderer_cardsmall(int xpos, int ypos, HCard const *card)
 			}
 			HGUI_text(xpos+1, ypos, "=", false, ALIGN_LEFT);
 			HGUI_cSet(WHITE, FOREGROUND, BRIGHT);
+			HGUI_text(xpos+1, ypos+1, month_string, false, ALIGN_RIGHT);
 			break;
+
 		case H_GWAN:
 			HGUI_text(xpos, ypos, "*", false, ALIGN_LEFT);
+			HGUI_text(xpos+1, ypos+1, month_string, false, ALIGN_RIGHT);
 			break;
 	}
-
-	char month_string[3];
-	sprintf(month_string, "%d", card->month);
-	if(HCard_isBird(card))
-	{
-		HGUI_cSet(YELLOW, FOREGROUND, BRIGHT);
-	}
-	HGUI_text(xpos+1, ypos+1, month_string, false, ALIGN_RIGHT);
+	
 	HGUI_cReset();
 }
 
@@ -608,10 +623,12 @@ void Renderer_game(HGame *me, int marker)
  #endif
 		return ;
 	}
-	HGUI_curSet(1, 1);
+	HGame_refresh(me);
 
-	// Draw the Window
-	// GENERAL WINDOW
+	/*
+		WINDOW DRAW & UI
+	*/
+	HGUI_cReset();
 	HGUI_window(1, 1, 2*CELL_WIDTH-1, CELL_HEIGHT);
 
 	// Grid Pattern
@@ -637,7 +654,9 @@ void Renderer_game(HGame *me, int marker)
 	// Order List
 	HGUI_text(3, 2, "ACTION : ", false, ALIGN_LEFT);
 
-	// Draw Game Cards
+	/*
+		GAME MAIN CARD
+	*/
 	HGUI_text(3, 3, "GAME CARD AREA", false, ALIGN_LEFT);
 
 	// Gather the Card from different slot
@@ -656,6 +675,7 @@ void Renderer_game(HGame *me, int marker)
 		/*
 			GENERAL SECTION
 		*/
+		HGUI_cReset();
 		HGUI_window(1         , 1+(CELL_HEIGHT-1)*(p+1), CELL_WIDTH, CELL_HEIGHT);
 		HGUI_window(CELL_WIDTH, 1+(CELL_HEIGHT-1)*(p+1), CELL_WIDTH, CELL_HEIGHT);
 
@@ -699,6 +719,7 @@ void Renderer_game(HGame *me, int marker)
 		/*
 			PLAYER SECTION
 		*/
+		// My Deck
 		HDeck_sort((me->player)[p]->myDeck);
 		if(me->current_player_num == p)
 		{
@@ -709,6 +730,7 @@ void Renderer_game(HGame *me, int marker)
 			Renderer_deck(pbias_x, pbias_y + 2 + (CARD_HEIGHT+5)*p, (me->player)[p]->myDeck, -1, false);
 		}
 
+		// Eaten Deck
 		HGUI_cSet(RED, FOREGROUND, BRIGHT);
 		HGUI_text(CELL_WIDTH + 2, pbias_y + 2 + (CARD_HEIGHT+5)*p, "PPI :", false, ALIGN_LEFT);
 		HGUI_text(CELL_WIDTH + 2, pbias_y + 7 + (CARD_HEIGHT+5)*p, "ANIM:", false, ALIGN_LEFT);
@@ -722,9 +744,6 @@ void Renderer_game(HGame *me, int marker)
 		Renderer_decksmall(CELL_WIDTH + 7, pbias_y + 6 + (CARD_HEIGHT+5)*p, (me->player)[p]->animDeck);
 		Renderer_decksmall(CELL_WIDTH + 7, pbias_y + 5 + (CARD_HEIGHT+5)*p, (me->player)[p]->lineDeck);
 		Renderer_decksmall(CELL_WIDTH + 29, pbias_y + 6 + (CARD_HEIGHT+5)*p, (me->player)[p]->gwanDeck);
-
-		// Player State Print
-		HGUI_text(SCR_WIDTH + 5, pbias_y + 2 + (CARD_HEIGHT+5)*p, (me->player)[p]->last_state, true, ALIGN_CENTER);
 	}
 }
 
@@ -778,8 +797,8 @@ void Renderer_apChange(HPlayer *player)
 
 	if(isExist && !(player->hasChangeAP))
 	{
+		// If there is 9-Five, then draw the UI. Then make a question.
 		char LABEL[] = "Change PPI to ANIM (Only 1 Chance) [y/n]";
-	
 		int len = strlen(LABEL);
 	
 		HGUI_cSet(RED, BACKGROUND, DARK);
@@ -791,6 +810,7 @@ void Renderer_apChange(HPlayer *player)
 	
 		Renderer_card(SCR_WIDTH/2 - CARD_WIDTH/2 + 1, SCR_HEIGHT/2 - 1, temp);
 		
+		// Key Input
 		while(true)
 		{
 			switch(HGUI_getch())
@@ -804,4 +824,56 @@ void Renderer_apChange(HPlayer *player)
 			}
 		}
 	}
+}
+
+void Renderer_notice(char const *contents, int height)
+{
+	int len = strlen(contents);
+
+	HGUI_cSet(RED, BACKGROUND, DARK);
+	HGUI_cSet(RED, FOREGROUND, BRIGHT);
+	HGUI_window(SCR_WIDTH/2 - len/2 - 1, SCR_HEIGHT/2 - height/2 + 1, len+4, height);
+
+	HGUI_cSet(WHITE, FOREGROUND, BRIGHT);
+	HGUI_text(SCR_WIDTH/2+1, SCR_HEIGHT/2 - height/2 + 3, contents, false, ALIGN_CENTER);
+
+	HGUI_getch();
+}
+
+void Renderer_noticeCards(HDeck *deck)
+{
+	char contents[] = "You ate this";
+	int width, height;
+	if(strlen(contents)+4 < (deck->size)*(CARD_WIDTH+1))
+	{
+		width = (deck->size)*(CARD_WIDTH+1) + 3;
+	}
+	else
+	{
+		width = strlen(contents)+4;
+	}
+	height = CARD_HEIGHT + 5;
+
+	HGUI_cSet(RED, BACKGROUND, DARK);	
+	HGUI_cSet(RED, FOREGROUND, BRIGHT);
+	HGUI_window(SCR_WIDTH/2 - width/2 + 1, SCR_HEIGHT/2 - height/2 + 1, width, height);
+
+	HGUI_cSet(WHITE, FOREGROUND, BRIGHT);
+	HGUI_text(SCR_WIDTH/2+1, SCR_HEIGHT/2 - CARD_HEIGHT/2 - 1, contents, false, ALIGN_CENTER);
+
+	Renderer_deck(SCR_WIDTH/2 - width/2 + 3,
+		          SCR_HEIGHT/2 - CARD_HEIGHT/2 + 1,
+		          deck, -1, false);
+	HGUI_getch();
+}
+
+void Renderer_intro(void)
+{
+	HGUI_erase();
+	printf("Please set your console size bigger then 90x41.\n");
+	printf("실행 전 콘솔창을 90x41 이상으로 키워주세요.\n\n");
+	printf("If you ignore this, you can experience the masterpiece of planet earth.\n");
+	printf("만약 이 메시지를 무시하시면 지구상 가장 위대한 걸작을 보게 될 것입니다.\n");
+
+	HGUI_getch();
 }

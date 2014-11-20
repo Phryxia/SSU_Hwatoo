@@ -33,11 +33,6 @@ HPlayer *new_HPlayer(void)
 		
 		me->how_many_go = 0;
 		me->score       = 0;
-		
-		me->score_norm  = 0;
-		me->score_anim  = 0;
-		me->score_line  = 0;
-		me->score_gwan  = 0;
 
 		me->hasChangeAP = false;
 		

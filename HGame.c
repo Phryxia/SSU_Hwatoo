@@ -28,18 +28,18 @@ HGame *new_HGame(HCard const *CARD_SET) // todo
 	else
 	{
 		// Allocate HPlayer & HDeck
-		for(int i=0; i<3; ++i)
+		for(int p=0; p<3; ++p)
 		{
-			(me->player)[i] = new_HPlayer();
+			(me->player)[p] = new_HPlayer();
 		}
+
 		me->unknown_cards = new_HDeck();
-		for(int i=0; i<12; ++i)
+		for(int m=0; m<12; ++m)
 		{
-			(me->visible_cards)[i] = new_HDeck();
+			(me->visible_cards)[m] = new_HDeck();
 		}
 		me->display_cards = new_HDeck();
 
-		me->marker_stack_size = 0;
 		me->was_nagari = false;
 
 		HPlayer_setName((me->player)[0], "Min-Su");
@@ -68,7 +68,7 @@ void delete_HGame(HGame *me)
 
 void HGame_reset(HGame *me, HCard const *CARD_SET)
 {
-#ifdef DEBUG
+ #ifdef DEBUG
 	if(me == NULL)
 	{
 		printError("HGame", "Error", "reset(HGame *, HCard *)", "NULL HGame Pointer Exception!!");
@@ -77,49 +77,40 @@ void HGame_reset(HGame *me, HCard const *CARD_SET)
 	{
 		printError("HGame", "Error", "reset(HGame *, HCard *)", "NULL ingredient Exception!!");
 	}
-#endif
+ #endif
 	// Prepare for ingredient cards.
-	for(int i=0; i<12; ++i)
+	for(int m=0; m<12; ++m)
 	{
-		HDeck_clear((me->visible_cards)[i]);
+		HDeck_clear((me->visible_cards)[m]);
 	}
 	HDeck_clear(me->unknown_cards);
 	HDeck_import(me->unknown_cards, CARD_SET);
 	HDeck_shake(me->unknown_cards);
 	
 	// Card Distribution. From Last Card.
-	// Draw 3 cards on the floor
-	for(int i=0; i<3; ++i)
+	// Draw 6 cards on the floor
+	for(int i=0; i<6; ++i)
 	{
 		HCard const *topCard = me->unknown_cards->first->prev->data;
-		HDeck_drawFrom((me->visible_cards)[topCard->month-1], me->unknown_cards, me->unknown_cards->size-1);
+		HDeck_drawFrom((me->visible_cards)[topCard->month-1], me->unknown_cards, me->unknown_cards->size - 1);
 	}
 	
-	// Give Player the Cards
-	for(int i=0; i<3; ++i)
+	/*
+		PLAYER RESET
+	*/
+	me->current_player_num = 0;
+	for(int p=0; p<3; ++p)
 	{
-		HDeck_clear((me->player)[i]->myDeck);
-		for(int j=0; j<4; ++j) // Give 4 cards
+		HDeck_clear((me->player)[p]->myDeck);
+		for(int j=0; j<7; ++j) // Give 4 cards
 		{
-			HDeck_drawFrom((me->player)[i]->myDeck, me->unknown_cards, me->unknown_cards->size-1);
+			HDeck_drawFrom((me->player)[p]->myDeck, me->unknown_cards, me->unknown_cards->size-1);
 		}
 	}
-	
-	// Draw 3 cards on the floor again.
-	for(int i=0; i<3; ++i)
-	{
-		HCard const *topCard = me->unknown_cards->first->prev->data;
-		HDeck_drawFrom((me->visible_cards)[topCard->month-1], me->unknown_cards, me->unknown_cards->size-1);
-	}
-	
-	// Give Player the Cards
-	for(int i=0; i<3; ++i)
-	{
-		for(int j=0; j<3; ++j) // Give 4 cards
-		{
-			HDeck_drawFrom((me->player)[i]->myDeck, me->unknown_cards, me->unknown_cards->size-1);
-		}
-	}
+
+ #ifdef DEBUG
+	printError("HGame", "Note", "reset(HGame *, HCard *)", "Game Reset Done");
+ #endif
 }
 
 void HGame_setTurn(HGame *me, HPlayer *who_win)
@@ -150,8 +141,24 @@ void HGame_setTurn(HGame *me, HPlayer *who_win)
 	}
 }
 
+HPlayer *HGame_nowPlayer(HGame *me)
+{
+	if(me == NULL)
+	{
+ #ifdef DEBUG
+		printError("HGame", "Error", "nowPlayer(HGame *)", "NULL HGame Pointer Exception");
+ #endif
+		return NULL;
+	}
+	else
+	{
+		return (me->player)[me->current_player_num];
+	}
+}
+
 void HGame_refresh(HGame *me)
 {
+	// Clear the Display Buffer
 	HDeck_clear(me->display_cards);
 	for(int m=0; m<12; ++m)
 	{
@@ -163,10 +170,184 @@ void HGame_refresh(HGame *me)
 	}
 }
 
+void HGame_calcScore(HGame *game)//점수산출함수
+{
+	/*
+		Calculate Every Player's Score.
+
+		Reason why not calculate only one is 'Middle Change'.
+		For example, there could be the situation that someone took other's cards.
+		So You have to change everyone's score whenever who's turn is.
+	*/
+	for(int p=0; p<3; ++p)
+	{
+    	//인자에 점수산출을 넣거나 점수계산
+    	HPlayer *player = game->player[p];
+    	int score_norm = 0; // PPI
+		int score_anim = 0; // Animal
+		int score_line = 0; // Ddi
+		int score_gwan = 0; // Gwang
+    	int xRate      = 1;
+
+    	//피 점수 계산
+    	/*
+    		Normal Deck(PPI) Calculation
+
+    		Count the number of cards. Be-careful with Double PPI.
+    	*/
+    	int norm_cnt   = player->normDeck->size;
+    	int double_cnt = 0;
+    	for(int c=0; c<norm_cnt; ++c)
+    	{
+    		HCard const *card = HDeck_get(player->normDeck, c)->data;
+
+    		if(card->isDouble)
+    		{
+    			++double_cnt;
+    		}
+    	}
+    	if(norm_cnt + double_cnt >= 10)
+    	{
+    		score_norm = norm_cnt + double_cnt - 9;
+    	}
+	
+    	// 십 점수 계산
+    	/*
+    		Animal Deck Calculation
+
+    		When anim_cnt >= 5, add 1 point.
+    		When godori apeared, 
+    	*/
+    	int anim_cnt = player->animDeck->size;
+    	int bird_cnt = 0;
+    	for(int c=0; c<anim_cnt; ++c)
+    	{
+    		// Search for Godori
+    		HCard const *card = HDeck_get(player->animDeck, c)->data;
+
+    		if(HCard_isBird(card))
+    		{
+    			++bird_cnt;
+
+    			if(bird_cnt == 3)
+    			{
+    				break;
+    			}
+    		}
+    	}
+    	if(anim_cnt >= 5)
+    	{
+    		score_anim += anim_cnt - 4;
+
+    		if(anim_cnt >= 7)
+    		{
+    			// Meong-Teong-Gu-Ri
+    			xRate *= 2;
+    		}
+    	}
+    	if(bird_cnt == 3)
+    	{
+    		score_anim += 5;
+    	}
+	
+    	//띠 점수 계산
+    	/*
+    		Line Deck Calculation
+
+    		First, just count the number of lines.
+    		If line_cnt == 5, add 1 point.
+
+    		And then, calculate each types for 3 point.
+    	*/
+    	int line_cnt = player->lineDeck->size;
+    	int red_cnt  = 0;
+    	int blu_cnt  = 0;
+    	int cho_cnt  = 0;
+    	for(int c=0; c<line_cnt; ++c)
+    	{
+    		HCard const *card = HDeck_get(player->lineDeck, c)->data;
+
+    		switch(card->type)
+    		{
+    			case HF_RED:
+    				++red_cnt;
+    				break;
+    			case HF_BLU:
+    				++blu_cnt;
+    				break;
+    			case HF_CHO:
+    				++cho_cnt;
+    				break;
+    		}
+    	}
+    	if(line_cnt >= 5)
+    	{
+    		score_line += line_cnt - 4;
+    	}
+    	if(red_cnt == 3) // Hong-Dan
+    	{
+    		score_line += 3;
+    	}
+    	if(blu_cnt == 3) // Cheong-Dan
+    	{
+    		score_line += 3;
+    	}
+    	if(cho_cnt == 3) // Cho-Dan
+    	{
+    		score_line += 3;
+    	}
+
+    	//광점수 계산
+    	/*
+    		Gwang Deck Calculation
+    	*/
+    	int  gwan_cnt   = player->gwanDeck->size;
+    	bool has_bigwan = false;
+    	for(int c=0; c<gwan_cnt; ++c)
+    	{
+    		// Search for Bi Gwan
+    		HCard const *card = HDeck_get(player->gwanDeck, c)->data;
+
+    		if(card->month == 12)
+    		{
+    			has_bigwan = true;
+    			break;
+    		}
+    	}
+    	switch(gwan_cnt)
+    	{
+    		case 5: // Wow!
+    			score_gwan = 15;
+    			break;
+    		case 4:
+    			score_gwan = 4;
+    			break;
+    		case 3:
+    			if(has_bigwan) // Bi Gwang Calculation
+    			{
+    				score_gwan = 2;
+    			}
+    			else
+    			{
+    				score_gwan = 3;
+    			}
+    			break;
+    	}
+
+    	/*
+    		Total Calculation
+    	*/
+    	player->score = xRate*(score_norm + score_anim + score_line + score_gwan);
+	}
+}
+
 void HGame_initTurn(HGame *me)
 {
 	me->current_player_num = 0;
-	me->current_player     = (me->player)[me->current_player_num];
+
+ #ifdef DEBUG
+	printError("HGame", "Note", "initTurn(HGame *)", "Turn Init Done");
+ #endif
 }
 
 void HGame_moveTurn(HGame *me)
@@ -179,5 +360,8 @@ void HGame_moveTurn(HGame *me)
 	{
 		me->current_player_num = 0;
 	}
-	me->current_player = (me->player)[me->current_player_num];
+
+ #ifdef DEBUG
+	printError("HGame", "Note", "moveTurn(HGame *)", "Turn Move Done");
+ #endif
 }

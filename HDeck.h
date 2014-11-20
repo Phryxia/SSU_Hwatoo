@@ -12,12 +12,12 @@
 */
 typedef struct _HSlot_
 {
-	// Member Variable
+	/*
+		Member Variable
+	*/
 	struct _HSlot_ *prev;
 	struct _HSlot_ *next;
 	HCard const *data;
-	
-	// Member Function
 } HSlot;
 
 HSlot *new_HSlot(void);
@@ -39,10 +39,6 @@ typedef struct _HDeck_
 	*/
 	HSlot *first;
 	size_t size;
-	
-	/*
-		Member Function
-	*/
 } HDeck;
 
 /*

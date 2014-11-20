@@ -12,8 +12,7 @@
 
 void doGame(HGame *game);
 void eat(HGame *game);
-void score(void);
-void stealcard(HGame *game, int player_num);
+void stealcard(HGame *game);
 void stop(void);
 
 bool gameEnd = false;
@@ -21,6 +20,8 @@ int main(void)
 {
 	logReset();
 	srand(time(NULL));
+	Renderer_intro();
+
 	/*
 		RESOURCE INITIALIZE
 	*/
@@ -31,9 +32,9 @@ int main(void)
 
 	if(GAME == NULL)
 	{
-#ifdef DEBUG
+ #ifdef DEBUG
 		printError("HMain", "Error", "main(void)", "Game Load Fail");
-#endif
+ #endif
 	}
 
 	char const *MENU_LIST[3] = {"1. New Game", "2. Load Game", "3. Exit"};
@@ -47,10 +48,8 @@ int main(void)
     {
     	// Menu Displyaing
     	HGUI_erase();
-    	HGUI_cSet(RED, BACKGROUND, DARK);
-    	HGUI_cSet(RED, FOREGROUND, BRIGHT);
+    	HGUI_cSet(RED, FOREGROUND, DARK);
     	HGUI_window(1, 1, 80, 20);
-    	HGUI_cSet(WHITE, FOREGROUND, BRIGHT);
     	HGUI_text(40, 6, "사기치면  손모가지", true, ALIGN_CENTER);
     	mode = HGUI_menu(40, 12, MENU_LIST, 3);
 
@@ -61,8 +60,6 @@ int main(void)
             case 0: 
                 //game start
             	HGame_reset(GAME, CARD_SET);
-            	HGame_refresh(GAME);
-                //HGame_draw(GAME);
                 doGame(GAME);
                 break;
             case 1:
@@ -78,7 +75,6 @@ int main(void)
         getchar();
     }
 	
-
 	/*
 		De-Allocation
 	*/
@@ -92,80 +88,89 @@ void doGame(HGame *game)//전체게임함수
 {
 	// Initialize Player Turn
 	HGame_initTurn(game);
-	bool continue_game = true;
-
-	// First Draw
 	Renderer_game(game, card_pointer);
+
+	bool continue_game = true;
 
 	while(continue_game)
 	{
-		//인터페이스 : e(exit), b(잔고), h(키설명),save(저장).load
-		bool isSelecting = true;
-		while(isSelecting)
+		for(int p=0; p<3; ++p)
 		{
-			// Get Key Input
-			int temp = HGUI_getch();
-			switch(temp)
+			//인터페이스 : e(exit), b(잔고), h(키설명),save(저장).load
+			HPlayer *player = game->player[p];
+			card_pointer = 0;
+			Renderer_game(game, card_pointer);	
+			
+			bool isSelecting = true;
+			while(isSelecting)
 			{
-				case 'a':
-					// Move Selector Left
-					if(card_pointer > 0)
-					{
-						--card_pointer;
-						Renderer_game(game, card_pointer);
-					}
-					break;
-				case 'd':
-					// Move Selector Right
-					if(card_pointer < game->current_player->myDeck->size-1)
-					{
-						++card_pointer;
-						Renderer_game(game, card_pointer);
-					}
-					break;
-				case '9':
-					Renderer_apChange(game->current_player);
-					Renderer_game(game, card_pointer);
-					break;
-				case '\n':
-					// Enter
-					isSelecting = false;
-					break;
-				case 'e':
-				// Exit
-					continue_game = false;
-					break;
-				case 'b':
-					// See the Player's Balance
-					break;
-				case 'h':
-					// Help
-					break;
-				default:
-					if(1 <= temp-'0' && temp-'0' <= 7 && temp-'0' <= game->current_player->myDeck->size)
-					{
-						card_pointer = temp-'0'-1;
-					}
-					break;
+				// Get Key Input
+				Renderer_game(game, card_pointer);
+				int temp = HGUI_getch();
+				switch(temp)
+				{
+					default:
+						// Number Input
+						if(1 <= temp-'0' && temp-'0' <= 7 && temp-'0' <= player->myDeck->size)
+						{
+							card_pointer = temp-'0'-1;
+						}
+						break;
+
+					case 'a':
+						// Move Selector Left
+						if(card_pointer > 0)
+						{
+							--card_pointer;
+						}
+						break;
+
+					case 'd':
+						// Move Selector Right
+						if(card_pointer < player->myDeck->size - 1)
+						{
+							++card_pointer;
+						}
+						break;
+
+					case '9':
+						// Change 9-Five as PPI <-> ANIM
+						Renderer_apChange(player);
+						break;
+
+					case '\n':
+						// Enter
+						isSelecting = false;
+						break;
+
+					case 'b':
+						// See the Player's Balance
+						break;
+
+					case 'h':
+						// Help
+						break;
+
+					case 'e':
+						// Exit
+						continue_game = false;
+						break;
+				}
 			}
+			
+			//eat함수 
+			eat(game);
+	
+			//점수산출score함수
+			HGame_calcScore(game);
+	
+			//났나? - 났을 때 고 혹은 스톱
+	
+			//스톱시 stop함수
+	
+			//턴 넘기기
+			HGame_moveTurn(game);
 		}
-		
-		//eat함수 
-		eat(game);
-
-		//상태갱신
-
-		//점수산출score함수
-		//score();
-
-		//났나? - 났을 때 고 혹은 스톱
-
-		//스톱시 stop함수
-
-		//턴 넘기기
-		HGame_moveTurn(game);
-		card_pointer = 0;
-		Renderer_game(game, card_pointer);
 	}
 }
 
@@ -176,10 +181,12 @@ void eat(HGame *game) //자기턴진행함수
 {
 	// Selector
     //먹을거 있니(1~7)-뭐먹을래(1~2)
-	HCard const *myCard = HDeck_get(game->current_player->myDeck, card_pointer)->data;
+	HCard const *myCard = HDeck_get(HGame_nowPlayer(game)->myDeck, card_pointer)->data;
 	HCard const *topCard = game->unknown_cards->first->prev->data;
-	HDeck_remove(game->current_player->myDeck, card_pointer);
+	HDeck_remove(HGame_nowPlayer(game)->myDeck, card_pointer);
 	HDeck_pop(game->unknown_cards);
+
+	HDeck *whatYouEat = new_HDeck();
 
     //까기
     bool hasZok = false;
@@ -198,65 +205,107 @@ void eat(HGame *game) //자기턴진행함수
 				// There is no matching card on the game
 				// ZOK
 				hasZok = true;
-				HPlayer_eat(game->current_player, myCard);
-				HPlayer_eat(game->current_player, topCard);
-				HPlayer_setState(game->current_player, "쪽 !");
+				HPlayer_eat(HGame_nowPlayer(game), myCard);
+				HPlayer_eat(HGame_nowPlayer(game), topCard);
+				HDeck_push(whatYouEat, myCard);
+				HDeck_push(whatYouEat, topCard);
+
+				Renderer_notice("쪽 !", CARD_HEIGHT);
+				
+				stealcard(game);
 				break;
 			case 1:
 				// POO
 				hasPoo = true;
 				HDeck_push(target, myCard);
 				HDeck_push(target, topCard);
-				HPlayer_setState(game->current_player, "쌌다 !");
+				
+				Renderer_notice("쌌다 !", CARD_HEIGHT);
 				break;
 			case 2:
 				// 4장 먹기
 				eatPoo = true;
-				HPlayer_eat(game->current_player, myCard);
-				HPlayer_eat(game->current_player, topCard);
-				HPlayer_eat(game->current_player, HDeck_get(target, 0)->data);
-				HPlayer_eat(game->current_player, HDeck_get(target, 1)->data);
+				HPlayer_eat(HGame_nowPlayer(game), myCard);
+				HPlayer_eat(HGame_nowPlayer(game), topCard);
+				HPlayer_eat(HGame_nowPlayer(game), HDeck_get(target, 0)->data);
+				HPlayer_eat(HGame_nowPlayer(game), HDeck_get(target, 1)->data);
+				HDeck_push(whatYouEat, myCard);
+				HDeck_push(whatYouEat, topCard);
+				HDeck_push(whatYouEat, HDeck_get(target, 0)->data);
+				HDeck_push(whatYouEat, HDeck_get(target, 1)->data);
 				HDeck_clear(target);
+
+				Renderer_notice("따닥 !", CARD_HEIGHT);
+
+				stealcard(game);
 				break;
 		}
 	}
 	else
 	{
-		// If it's not, you should take two possibilities.
-		// 1. Your Card
-		HDeck *target = (game->visible_cards)[myCard->month-1]; // Bcz of Horrible Length....
-		int sel_num;
-		switch(target->size)
+		for(int t=0; t<2; ++t)
 		{
-			case 0:
-				// You Throw the Card
-				HDeck_push(target, myCard);
-				break;
-			case 1:
-				// You Can Eat This!
-				HPlayer_eat(game->current_player, HDeck_get(target, 0)->data);
-				HPlayer_eat(game->current_player, myCard);
-				HDeck_clear(target);
-				break;
-			case 2:
-				// You have to select the card
-				sel_num = Renderer_eatw(target);
-				HPlayer_eat(game->current_player, HDeck_get(target, sel_num)->data);
-				HDeck_remove(target, sel_num);
-				break;
-			case 3:
-				// Eat the Poo!!!
-				eatPoo = true;
-				for(int i=0; i<3; ++i)
-				{
-					HPlayer_eat(game->current_player, HDeck_get(target, i)->data);
-				}
-				HPlayer_eat(game->current_player, myCard);
-				HDeck_clear(target);
-				HPlayer_setState(game->current_player, "올ㅋ");
-				break;
+			// If it's not, you should take two possibilities.
+			// 1. Your Card, 2. Top Card from Deck
+			HCard const *nowCard;
+			HDeck *target;
+
+			if(t == 0)
+			{
+				nowCard = myCard;
+				target = (game->visible_cards)[myCard->month-1]; // Bcz of Horrible Length....
+			}
+			else
+			{
+				nowCard = topCard;
+				target = (game->visible_cards)[topCard->month-1];
+			}
+
+			int sel_num;
+			switch(target->size)
+			{
+				case 0:
+					// You Throw the Card
+					HDeck_push(target, nowCard);
+					break;
+				case 1:
+					// Match : You Can Eat This!
+					HPlayer_eat(HGame_nowPlayer(game), nowCard);
+					HPlayer_eat(HGame_nowPlayer(game), HDeck_get(target, 0)->data);
+					HDeck_push(whatYouEat, nowCard);
+					HDeck_push(whatYouEat, HDeck_get(target, 0)->data);
+					HDeck_clear(target);
+					break;
+				case 2:
+					// You have to select the card
+					sel_num = Renderer_eatw(target);
+					HPlayer_eat(HGame_nowPlayer(game), nowCard);
+					HPlayer_eat(HGame_nowPlayer(game), HDeck_get(target, sel_num)->data);
+					HDeck_push(whatYouEat, nowCard);
+					HDeck_push(whatYouEat, HDeck_get(target, sel_num)->data);
+					HDeck_remove(target, sel_num);
+					break;
+				case 3:
+					// Eat the Poo!!!
+					eatPoo = true;
+					for(int i=0; i<3; ++i)
+					{
+						// Eat Every Cards in the Deck
+						HPlayer_eat(HGame_nowPlayer(game), HDeck_get(target, i)->data);
+						HDeck_push(whatYouEat, HDeck_get(target, i)->data);
+					}
+					HPlayer_eat(HGame_nowPlayer(game), nowCard);
+					HDeck_push(whatYouEat, nowCard);
+					HDeck_clear(target);
+					
+					Renderer_notice("올 ㅋ", CARD_HEIGHT);
+					
+					stealcard(game);
+					break;
+			}
 		}
 
+		/*
 		// 2. New Card
 		target = (game->visible_cards)[topCard->month-1];
 		switch(target->size)
@@ -267,102 +316,77 @@ void eat(HGame *game) //자기턴진행함수
 				break;
 			case 1:
 				// You Can Eat This!
-				HPlayer_eat(game->current_player, HDeck_get(target, 0)->data);
-				HPlayer_eat(game->current_player, topCard);
+				HPlayer_eat(HGame_nowPlayer(game), HDeck_get(target, 0)->data);
+				HPlayer_eat(HGame_nowPlayer(game), topCard);
 				HDeck_clear(target);
+
+				Renderer_noticeCard(topCard);
 				break;
 			case 2:
 				// You have to select the card
 				sel_num = Renderer_eatw(target);
-				HPlayer_eat(game->current_player, HDeck_get(target, sel_num)->data);
+				HPlayer_eat(HGame_nowPlayer(game), HDeck_get(target, sel_num)->data);
 				HDeck_remove(target, sel_num);
+				
+				Renderer_noticeCard(topCard);
 				break;
 			case 3:
 				// Eat the Poo!!!
 				eatPoo = true;
 				for(int i=0; i<3; ++i)
 				{
-					HPlayer_eat(game->current_player, HDeck_get(target, i)->data);
+					HPlayer_eat(HGame_nowPlayer(game), HDeck_get(target, i)->data);
 				}
-				HPlayer_eat(game->current_player, topCard);
+				HPlayer_eat(HGame_nowPlayer(game), topCard);
 				HDeck_clear(target);
-				HPlayer_setState(game->current_player, "개이득");
+				
+				Renderer_notice("개이득 !", CARD_HEIGHT);
+				Renderer_noticeCard(topCard);
+				
+				stealcard(game);
 				break;
 		}
+		*/
 	}
 
-	HGame_refresh(game);
-
-    //쌋냐
-	
-	/*
-	if(~~~) // 조건 필요함
+	if(whatYouEat->size > 0)
 	{
-		hasPoo = true;
+		HDeck_sort(whatYouEat);
+		Renderer_noticeCards(whatYouEat);
 	}
-	else
-	{
-		hasPoo = false;
-	}
-	*/
-
-    //따악-stillcard
-	if(false) // Need Condition
-	{
-		stealcard(game, game->current_player_num);
-	}
-	
-    //싼거먹기-stillcrad 
-	if(false) // Need Condition
-	{
-		stealcard(game, game->current_player_num);
-	}
+	delete_HDeck(whatYouEat);
 }
 
-void score(void)//점수산출함수
+void stealcard(HGame *game)//상대피 뺏어오기 함수
 {
-    //인자에 점수산출을 넣거나 점수계산
-
-    //광점수 계산
-
-    //십 점수 계산
-
-    //띠 점수 계산
-
-    //피 점수 계산
-
-    //더한값을 리턴
-}
-
-void stealcard(HGame *game, int player_num)//상대피 뺏어오기 함수
-{
-	if(player_num < 0 || player_num >= 3)
+	if(game->current_player_num < 0 || game->current_player_num >= 3)
 	{
-#ifdef DEBUG
+ #ifdef DEBUG
 		printError("HMain", "Error", "stealcard(HGame *, int)", "Wrong Player Number");
-#endif
+ #endif
 	}
 	else
 	{
-		HPlayer *me  = game->player[player_num];
+		HPlayer *me  = HGame_nowPlayer(game);
 		HPlayer *you = NULL;
 		for(int i=0; i<3; ++i)
 		{
-			you = game->player[i];
-			if(i != player_num)
+			you = (game->player)[i];
+			if(you != me)
 			{
 				//상대피에 피가 있나?
 				if(you->normDeck->size > 0)
 				{
 					//상대피에 쌍피만 있는가?
 					// Search for Double PPI
-					int  target = 0;
+					int target = 0;
 					for(int j=0; j<you->normDeck->size; ++j)
 					{
 						// Check All Norm Deck Card
 						if(!HDeck_get(you->normDeck, j)->data->isDouble)
 						{
-							// This part will search Non-Double Card. If there is no Non-Double, just pick one.
+							// This part will search Non-Double Card.
+							// If there is no Non-Double, just pick one.
 							target = j;
 							break;
 						}
@@ -372,6 +396,8 @@ void stealcard(HGame *game, int player_num)//상대피 뺏어오기 함수
 					//쌍피만 있는게 아니라면 그냥 피를 가져온다
 					HDeck_drawFrom(me->normDeck, you->normDeck, target);
 				}
+				HDeck_sort(me->normDeck);
+				HDeck_sort(you->normDeck);
 			}
 		}
 	}

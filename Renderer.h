@@ -18,5 +18,12 @@ void Renderer_game(HGame *game, int selector);
 */
 int  Renderer_eatw(HDeck *deck);
 void Renderer_apChange(HPlayer *player);
+void Renderer_notice(char const *contents, int height);
+void Renderer_noticeCards(HDeck *deck);
+
+/*
+	INTRO
+*/
+void Renderer_intro(void);
 
 #endif

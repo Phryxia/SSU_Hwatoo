@@ -42,6 +42,9 @@
 #define ALIGN_CENTER 1
 #define ALIGN_RIGHT  2
 
+/*
+	SYSTEM
+*/
 int  HGUI_getch(void);
 
 /*

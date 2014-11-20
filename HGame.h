@@ -17,15 +17,12 @@ typedef struct _HGame_
 		Member Variable
 	*/
 	HPlayer *player[3];
-	HPlayer *current_player;
 	int current_player_num;
 	
 	HDeck *unknown_cards;
 	HDeck *visible_cards[12]; // Save Cards as Month Order
 	HDeck *display_cards;
-	
-	int  marker_stack[12]; // This stores duplicated cards' index at visible_cards
-	int  marker_stack_size;
+
 	bool was_nagari;      // Was Prev Game Nagari???
 
 	/*
@@ -44,7 +41,9 @@ void   HGame_draw(HGame *me, int selector);
 /*
 	ABOUT GAME SYSTEM
 */
-void   HGame_refresh(HGame *me); // Re-Arrange Graphical
+HPlayer *HGame_nowPlayer(HGame *me);
+void     HGame_refresh(HGame *me); // Re-Arrange Graphical
+void     HGame_calcScore(HGame *me);
 
 /*
 	ABOUT PLAYER

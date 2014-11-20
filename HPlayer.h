@@ -28,11 +28,6 @@ typedef struct _HPlayer_
 	
 	int    how_many_go;
 	int    score;
-	
-	int    score_norm; // PPI
-	int    score_anim; // Animal
-	int    score_line; // Ddi
-	int    score_gwan; // Gwang
 
 	bool hasChangeAP; // PPI -> Animal changed?
 

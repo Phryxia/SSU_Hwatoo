@@ -182,7 +182,7 @@ int  HGUI_menu(int xpos, int ypos, char const **strings, int m_length)
 		switch((command = HGUI_getch()))
 		{
 			default:
-				if('1' <= command && command <= '9')
+				if('1' <= command && command <= '9' && command-'0' <= m_length)
 				{
 					pointer = command-'1';
 				}

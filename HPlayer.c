@@ -23,18 +23,13 @@ HPlayer *new_HPlayer(void)
 		/*
 			Deck Data Reset
 		*/
-		me->name[0]     = '\0';
-		me->money       = 0;
 		me->myDeck      = new_HDeck();
 		me->normDeck	= new_HDeck();
 		me->animDeck	= new_HDeck();
 		me->lineDeck	= new_HDeck();
 		me->gwanDeck	= new_HDeck();
-		
-		me->how_many_go = 0;
-		me->score       = 0;
 
-		me->hasChangeAP = false;
+		HPlayer_init(me, true);
 		
 		return me;
 	}
@@ -53,6 +48,31 @@ void delete_HPlayer(HPlayer *me)
 	free(me);
 }
 
+void HPlayer_init(HPlayer *me, bool money_reset)
+{
+	if(money_reset)
+	{
+		me->money       = 0;
+	}
+
+	HDeck_clear(me->myDeck);
+	HDeck_clear(me->normDeck);
+	HDeck_clear(me->animDeck);
+	HDeck_clear(me->lineDeck);
+	HDeck_clear(me->gwanDeck);
+	
+	me->how_many_go  = 0;
+	me->score        = 0;
+	me->score_lastgo = 0;
+	me->hasChangeAP  = false;
+	me->hasNoMoney   = false;
+
+	for(int m=0; m<12; ++m)
+	{
+		me->shaked[m] = false;
+	}
+}
+
 void HPlayer_setName(HPlayer *me, char const *_name)
 {
 	if(me == NULL)
@@ -65,21 +85,6 @@ void HPlayer_setName(HPlayer *me, char const *_name)
 	{
 		strncpy(me->name, _name, 31);
 		me->name[31] = '\0';
-	}
-}
-
-void HPlayer_setState(HPlayer *me, char const *state)
-{
-	if(me == NULL)
-	{
- #ifdef DEBUG
-		printError("HPlayer", "Error", "setState(HPlayer *, char const *)", "NULL HPlayer Pointer Exception!!");
- #endif
-	}
-	else
-	{
-		strncpy(me->last_state, state, 19);
-		me->name[19] = '\0';
 	}
 }
 

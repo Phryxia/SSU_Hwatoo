@@ -28,20 +28,18 @@ typedef struct _HPlayer_
 	
 	int    how_many_go;
 	int    score;
+	int    score_lastgo;
 
 	bool hasChangeAP; // PPI -> Animal changed?
-
-	/*
-		UTIL
-	*/
-	char last_state[20]; // Character
+	bool hasNoMoney;
+	bool shaked[12];
 } HPlayer;
 
 HPlayer *new_HPlayer(void);       // Make a new HPlayer and return its pointer.
 void delete_HPlayer(HPlayer *me); // When you finish using HPlayer, please deallocate this.
 
+void HPlayer_init(HPlayer *me, bool money_reset);
 void HPlayer_setName(HPlayer *me, char const *_name);
-void HPlayer_setState(HPlayer *me, char const *state);
 void HPlayer_eat(HPlayer *me, HCard const *card);
 
 #endif

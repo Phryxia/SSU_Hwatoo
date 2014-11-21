@@ -652,7 +652,7 @@ void Renderer_game(HGame *me, int marker)
 	HGUI_cReset();
 
 	// Order List
-	HGUI_text(3, 2, "ACTION : ", false, ALIGN_LEFT);
+	HGUI_text(3, 2, "LOOP :", false, ALIGN_LEFT);
 
 	/*
 		GAME MAIN CARD
@@ -672,6 +672,7 @@ void Renderer_game(HGame *me, int marker)
 	int pbias_y = 12;
 	for(int p=0; p<3; ++p)
 	{
+		HPlayer *player = me->player[p];
 		/*
 			GENERAL SECTION
 		*/
@@ -708,12 +709,12 @@ void Renderer_game(HGame *me, int marker)
 			HGUI_cSet(RED  , BACKGROUND, DARK);
 			HGUI_cSet(BLACK, FOREGROUND, DARK);
 		}
-		printf("PLAYER %d : %s", p+1, (me->player)[p]->name);
+		printf("PLAYER %d : %s", p+1, player->name);
 		
 		// Score
 		char score_string[32];
-		sprintf(score_string, "Score : %3d", (me->player)[p]->score);
-		HGUI_text(pbias_x + 24, pbias_y + 10*p, score_string, false, ALIGN_LEFT);
+		sprintf(score_string, "Score : %3d [%d Go]", player->score, player->how_many_go);
+		HGUI_text(pbias_x + 23, pbias_y + 10*p, score_string, false, ALIGN_LEFT);
 		HGUI_cReset();
 
 		/*
@@ -723,11 +724,11 @@ void Renderer_game(HGame *me, int marker)
 		HDeck_sort((me->player)[p]->myDeck);
 		if(me->current_player_num == p)
 		{
-			Renderer_deck(pbias_x, pbias_y + 2 + (CARD_HEIGHT+5)*p, (me->player)[p]->myDeck, marker, false);
+			Renderer_deck(pbias_x, pbias_y + 2 + (CARD_HEIGHT+5)*p, player->myDeck, marker, false);
 		}
 		else
 		{
-			Renderer_deck(pbias_x, pbias_y + 2 + (CARD_HEIGHT+5)*p, (me->player)[p]->myDeck, -1, false);
+			Renderer_deck(pbias_x, pbias_y + 2 + (CARD_HEIGHT+5)*p, player->myDeck, -1, false);
 		}
 
 		// Eaten Deck
@@ -736,14 +737,14 @@ void Renderer_game(HGame *me, int marker)
 		HGUI_text(CELL_WIDTH + 2, pbias_y + 7 + (CARD_HEIGHT+5)*p, "ANIM:", false, ALIGN_LEFT);
 		HGUI_text(CELL_WIDTH + 2, pbias_y + 6 + (CARD_HEIGHT+5)*p, "LINE:", false, ALIGN_LEFT);
 		HGUI_text(CELL_WIDTH + 24, pbias_y + 6 + (CARD_HEIGHT+5)*p, "GWAN:", false, ALIGN_LEFT);
-		HDeck_sort((me->player)[p]->normDeck);
-		HDeck_sort((me->player)[p]->animDeck);
-		HDeck_lsort((me->player)[p]->lineDeck);
-		HDeck_sort((me->player)[p]->gwanDeck);
-		Renderer_decksmall(CELL_WIDTH + 7, pbias_y + 2 + (CARD_HEIGHT+5)*p, (me->player)[p]->normDeck);
-		Renderer_decksmall(CELL_WIDTH + 7, pbias_y + 6 + (CARD_HEIGHT+5)*p, (me->player)[p]->animDeck);
-		Renderer_decksmall(CELL_WIDTH + 7, pbias_y + 5 + (CARD_HEIGHT+5)*p, (me->player)[p]->lineDeck);
-		Renderer_decksmall(CELL_WIDTH + 29, pbias_y + 6 + (CARD_HEIGHT+5)*p, (me->player)[p]->gwanDeck);
+		HDeck_sort(player->normDeck);
+		HDeck_sort(player->animDeck);
+		HDeck_lsort(player->lineDeck);
+		HDeck_sort(player->gwanDeck);
+		Renderer_decksmall(CELL_WIDTH + 7, pbias_y + 2 + (CARD_HEIGHT+5)*p, player->normDeck);
+		Renderer_decksmall(CELL_WIDTH + 7, pbias_y + 6 + (CARD_HEIGHT+5)*p, player->animDeck);
+		Renderer_decksmall(CELL_WIDTH + 7, pbias_y + 5 + (CARD_HEIGHT+5)*p, player->lineDeck);
+		Renderer_decksmall(CELL_WIDTH + 29, pbias_y + 6 + (CARD_HEIGHT+5)*p, player->gwanDeck);
 	}
 }
 
@@ -776,6 +777,24 @@ int Renderer_eatw(HDeck *deck)
 				break;
 		}
 	}
+}
+
+void Renderer_showBalance(HGame *game)
+{
+	HGUI_cSet(RED, BACKGROUND, DARK);
+	HGUI_cSet(RED, FOREGROUND, BRIGHT);
+	HGUI_window(SCR_WIDTH/2 - 20, SCR_HEIGHT/2 - 4 + 1, 41, 9);
+
+	for(int p=0; p<3; ++p)
+	{
+		char contents[64];
+		sprintf(contents, "Player %s have %8d won.", game->player[p]->name, game->player[p]->money);
+		int len = strlen(contents);
+		HGUI_cSet(WHITE, FOREGROUND, BRIGHT);
+		HGUI_text(SCR_WIDTH/2+1, SCR_HEIGHT/2 - 4 + 3+2*p, contents, false, ALIGN_CENTER);
+	}
+
+	HGUI_getch();
 }
 
 void Renderer_apChange(HPlayer *player)
@@ -826,6 +845,45 @@ void Renderer_apChange(HPlayer *player)
 	}
 }
 
+void Renderer_shake(HGame *game)
+{
+	/*
+		ABOUT SHAKE
+
+		shake() will render the dialog.
+	*/
+
+	char contents[64];
+	sprintf(contents, "Player %s shaked his/her cards!", HGame_nowPlayer(game)->name);
+
+	Renderer_notice(contents, CARD_HEIGHT);
+}
+
+bool Renderer_willGo(void)
+{
+	char contents[] = "Over 3 Point! Are you going to \"go\"? [g/s]";
+	int len = strlen(contents);
+
+	HGUI_cSet(RED, BACKGROUND, DARK);
+	HGUI_cSet(RED, FOREGROUND, BRIGHT);
+	HGUI_window(SCR_WIDTH/2 - len/2 - 1, SCR_HEIGHT/2 - CARD_HEIGHT/2 + 1, len+4, CARD_HEIGHT);
+
+	HGUI_cSet(WHITE, FOREGROUND, BRIGHT);
+	HGUI_text(SCR_WIDTH/2+1, SCR_HEIGHT/2 - CARD_HEIGHT/2 + 3, contents, false, ALIGN_CENTER);
+
+	// Key Input
+	while(true)
+	{
+		switch(HGUI_getch())
+		{
+			case 'g':
+				return true;
+			case 's':
+				return false;
+		}
+	}
+}
+
 void Renderer_notice(char const *contents, int height)
 {
 	int len = strlen(contents);
@@ -865,6 +923,59 @@ void Renderer_noticeCards(HDeck *deck)
 		          SCR_HEIGHT/2 - CARD_HEIGHT/2 + 1,
 		          deck, -1, false);
 	HGUI_getch();
+}
+
+void Renderer_statistics(HGame *game)
+{
+}
+
+void Renderer_help(void)
+{
+	int left = SCR_WIDTH/2 - 25 + 1;
+	int up   = SCR_HEIGHT/2 - 5 - 1;
+
+	HGUI_cSet(RED, BACKGROUND, DARK);	
+	HGUI_cSet(RED, FOREGROUND, BRIGHT);
+	HGUI_window(left, up, 52, 13);
+
+	HGUI_cSet(WHITE, FOREGROUND, BRIGHT);
+	HGUI_text(SCR_WIDTH/2, up+1, ": HELP PAGE :", false, ALIGN_CENTER);
+	HGUI_text(left+2, up+3 , "[a] : Move card cursor to left", false, ALIGN_LEFT);
+	HGUI_text(left+2, up+4 , "[d] : Move card cursor to right", false, ALIGN_LEFT);
+	HGUI_text(left+2, up+5 , "[1~7] : Move card cursor directly to that number", false, ALIGN_LEFT);
+	HGUI_text(left+2, up+6 , "[Enter] : Select the card", false, ALIGN_LEFT);
+	HGUI_text(left+2, up+7 , "[9] : Change 9-Five PPI -> Animal. (Only Once)", false, ALIGN_LEFT);
+	HGUI_text(left+2, up+8 , "[b] : See player's possession", false, ALIGN_LEFT);
+	HGUI_text(left+2, up+9 , "[e] : Exit", false, ALIGN_LEFT);
+	HGUI_text(left+2, up+10, "[h] : Help Page", false, ALIGN_LEFT);
+
+	HGUI_getch();
+}
+
+bool Renderer_exit(void)
+{
+	// If there is 9-Five, then draw the UI. Then make a question.
+	char LABEL[] = "Do you really want to exit? [y/n]";
+	int len = strlen(LABEL);
+
+	HGUI_cSet(RED, BACKGROUND, DARK);
+	HGUI_cSet(RED, FOREGROUND, BRIGHT);
+	HGUI_window(SCR_WIDTH/2 - len/2 - 1, SCR_HEIGHT/2 - 1, len+4, CARD_HEIGHT);
+
+	HGUI_cSet(WHITE, FOREGROUND, BRIGHT);
+	HGUI_text(SCR_WIDTH/2+1, SCR_HEIGHT/2+1, LABEL, false, ALIGN_CENTER);
+	
+	// Key Input
+	while(true)
+	{
+		switch(HGUI_getch())
+		{
+			case 'y':
+				return true;
+			case 'n':
+				return false;
+		}
+	}
 }
 
 void Renderer_intro(void)

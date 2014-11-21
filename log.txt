@@ -1,28 +1,8 @@
 LOG START
 [Main : Note] Main::main(void) - Try to load CARD_SET...
 [Main : Note] Main::main(void) - Try to load HGame...
-[HGame : Note] HGame::reset(HGame *, HCard *) - Game Reset Done
+[HGame : Note] HGame::initTurn(HGame *) - Turn Init Done
 [HGame : Note] HGame::reset(HGame *, HCard *) - Game Reset Done
 [HGame : Note] HGame::initTurn(HGame *) - Turn Init Done
-[HGame : Note] HGame::moveTurn(HGame *) - Turn Move Done
-[HGame : Note] HGame::moveTurn(HGame *) - Turn Move Done
-[HGame : Note] HGame::moveTurn(HGame *) - Turn Move Done
-[HGame : Note] HGame::moveTurn(HGame *) - Turn Move Done
-[HGame : Note] HGame::moveTurn(HGame *) - Turn Move Done
-[HGame : Note] HGame::moveTurn(HGame *) - Turn Move Done
-[HGame : Note] HGame::moveTurn(HGame *) - Turn Move Done
-[HGame : Note] HGame::moveTurn(HGame *) - Turn Move Done
-[HGame : Note] HGame::moveTurn(HGame *) - Turn Move Done
-[HGame : Note] HGame::moveTurn(HGame *) - Turn Move Done
-[HGame : Note] HGame::moveTurn(HGame *) - Turn Move Done
-[HGame : Note] HGame::moveTurn(HGame *) - Turn Move Done
-[HGame : Note] HGame::moveTurn(HGame *) - Turn Move Done
-[HGame : Note] HGame::moveTurn(HGame *) - Turn Move Done
-[HGame : Note] HGame::moveTurn(HGame *) - Turn Move Done
-[HGame : Note] HGame::moveTurn(HGame *) - Turn Move Done
-[HGame : Note] HGame::moveTurn(HGame *) - Turn Move Done
-[HGame : Note] HGame::moveTurn(HGame *) - Turn Move Done
-[HGame : Note] HGame::moveTurn(HGame *) - Turn Move Done
-[HGame : Note] HGame::moveTurn(HGame *) - Turn Move Done
-[HGame : Note] HGame::moveTurn(HGame *) - Turn Move Done
-[HDeck : Warning] HDeck::get(HDeck *, int) - Wrong Position Access!!
+[HGame : Note] HGame::reset(HGame *, HCard *) - Game Reset Done
+[HGame : Note] HGame::initTurn(HGame *) - Turn Init Done

@@ -10,10 +10,10 @@
 #include "Renderer.h"
 #include "Debug_Center.h"
 
-void doGame(HGame *game);
-void eat(HGame *game);
+void doGame(HGame *game, HCard const *CARD_SET);
+bool eat(HGame *game, int card_pointer);
 void stealcard(HGame *game);
-void stop(void);
+bool stop(HGame *game, int winner, bool hasGwan);
 
 bool gameEnd = false;
 int main(void)
@@ -60,7 +60,7 @@ int main(void)
             case 0: 
                 //game start
             	HGame_reset(GAME, CARD_SET);
-                doGame(GAME);
+                doGame(GAME, CARD_SET);
                 break;
             case 1:
                 //load game
@@ -72,7 +72,6 @@ int main(void)
             default:
                 break;//잘못된 입력 
         }
-        getchar();
     }
 	
 	/*
@@ -83,20 +82,22 @@ int main(void)
     return 0;
 }
 
-int card_pointer = 0;
-void doGame(HGame *game)//전체게임함수
+//int card_pointer = 0;
+void doGame(HGame *game, HCard const *CARD_SET)//전체게임함수
 {
 	// Initialize Player Turn
 	HGame_initTurn(game);
+	int card_pointer = 0;
 	Renderer_game(game, card_pointer);
+	int loop = 0;
 
 	bool continue_game = true;
-
 	while(continue_game)
 	{
-		for(int p=0; p<3; ++p)
+		for(int p=0; p<3 && continue_game; ++p)
 		{
 			//인터페이스 : e(exit), b(잔고), h(키설명),save(저장).load
+			game->current_player_num = p;
 			HPlayer *player = game->player[p];
 			card_pointer = 0;
 			Renderer_game(game, card_pointer);	
@@ -106,7 +107,8 @@ void doGame(HGame *game)//전체게임함수
 			{
 				// Get Key Input
 				Renderer_game(game, card_pointer);
-				int temp = HGUI_getch();
+				int  temp = HGUI_getch();
+				char temp_string[32];
 				switch(temp)
 				{
 					default:
@@ -145,39 +147,166 @@ void doGame(HGame *game)//전체게임함수
 
 					case 'b':
 						// See the Player's Balance
+						//sprintf(temp_string, "You have %d won...", player->money);
+						//Renderer_notice(temp_string, CARD_HEIGHT);
+						Renderer_showBalance(game);
 						break;
 
 					case 'h':
 						// Help
+						Renderer_help();
 						break;
 
 					case 'e':
 						// Exit
-						continue_game = false;
+						continue_game = !Renderer_exit();
+						if(!continue_game)
+						{
+							isSelecting = false;
+						}
 						break;
 				}
 			}
+
+			if(!continue_game)
+			{
+				break;
+			}
 			
-			//eat함수 
-			eat(game);
+			//eat함수
+			int  shake_num = HGame_willShake(game);
+			if(shake_num == 4)
+			{
+				// Chong-Tong
+				Renderer_notice("What the... You are president! 0~0 You win!", CARD_HEIGHT);
+				player->score += 10;
+				stop(game, p, false);
+				Renderer_statistics(game);
+				HGame_reset(game, CARD_SET);
+				break;
+			}
+			if(shake_num)
+			{
+				Renderer_notice("Shake it~ Shake it~", CARD_HEIGHT);
+			}
+			bool hasGwan   = eat(game, card_pointer);
 	
 			//점수산출score함수
 			HGame_calcScore(game);
 	
 			//났나? - 났을 때 고 혹은 스톱
+			if(player->score >= 3)
+			{
+				/*
+					Several Case
+
+					i)  Last Loop
+					ii) Other Loop
+				*/
+				if(player->myDeck->size == 0)
+				{
+					/*
+						Last Loop. There are Several Case
+
+						i)  Can Go   -> 100% WIN
+						ii) Can't Go -> 100% LOSE
+					*/
+					if(player->score > player->score_lastgo || player->how_many_go == 0)
+					{
+						/*
+							Can Go ( AUTO STOP )
+						*/
+						game->was_nagari = false;
+						Renderer_notice("Good Job! You Win!", CARD_HEIGHT);
+						bool world_end = stop(game, p, hasGwan);
+
+						// Show Statistics
+						Renderer_statistics(game);
+
+						if(world_end)
+						{
+							HGUI_cReset();
+							return ;
+						}
+						else
+						{
+							// Reset
+							HGame_reset(game, CARD_SET);
+							break;
+						}
+					}
+				}
+				else
+				{
+					/*
+						Not Last Loop. If you have enough quality, you can go.
+					*/
+					if(player->score > player->score_lastgo || player->how_many_go == 0)
+					{
+						if(Renderer_willGo())
+						{
+							// Go
+							player->how_many_go += 1;
+							player->score_lastgo = player->score;
+						}
+						else
+						{
+							// Stop (or Auto Stop)
+							game->was_nagari = false;
+							Renderer_notice("Good Job! You Win!", CARD_HEIGHT);
+							bool world_end = stop(game, p, hasGwan);
 	
-			//스톱시 stop함수
+							// Show Statistics
+							Renderer_statistics(game);
 	
-			//턴 넘기기
-			HGame_moveTurn(game);
+							if(world_end)
+							{
+								HGUI_cReset();
+								return ;
+							}
+							else
+							{
+								// Reset
+								HGame_reset(game, CARD_SET);
+								break;
+							}
+						}
+					}
+				}
+			}
+			else
+			{
+				/*
+					In this case, most of turn is normal.
+					But when last loop & last turn, Nagari will occured.
+				*/
+				if(player->myDeck->size == 0)
+				{
+					if(p == 2)
+					{
+						// Nagari '~'
+						game->was_nagari = true;
+						Renderer_notice("Congratulation! This phase is Nagari! Next phase will make x2 money.", CARD_HEIGHT);
+						
+						// Show Statistics
+						Renderer_statistics(game);
+
+						// Reset Game
+						HGame_reset(game, CARD_SET);
+						break;
+					}
+				}
+			}
 		}
 	}
+
+	HGUI_cReset();
 }
 
 /*
-	eat 함수의 리턴 값은 현재 플레이어가 패를 뺏아오는 상황인지 아닌지 결정한다
+	Eating Card : Return value is whether you eat the Gwang or not.
 */
-void eat(HGame *game) //자기턴진행함수
+bool eat(HGame *game, int card_pointer) //자기턴진행함수
 {
 	// Selector
     //먹을거 있니(1~7)-뭐먹을래(1~2)
@@ -189,10 +318,7 @@ void eat(HGame *game) //자기턴진행함수
 	HDeck *whatYouEat = new_HDeck();
 
     //까기
-    bool hasZok = false;
-    bool hasPoo = false;
-    bool eatPoo = false;
-    bool hasDdk = false;
+    bool hasGwan = false;
 	
 	if(myCard->month == topCard->month)
 	{
@@ -202,13 +328,16 @@ void eat(HGame *game) //자기턴진행함수
 		switch(target->size)
 		{
 			case 0:
-				// There is no matching card on the game
+				// There is no matching card on the floor
 				// ZOK
-				hasZok = true;
 				HPlayer_eat(HGame_nowPlayer(game), myCard);
 				HPlayer_eat(HGame_nowPlayer(game), topCard);
 				HDeck_push(whatYouEat, myCard);
 				HDeck_push(whatYouEat, topCard);
+				if(myCard->type == H_GWAN || topCard->type == H_GWAN)
+				{
+					hasGwan = true;
+				}
 
 				Renderer_notice("쪽 !", CARD_HEIGHT);
 				
@@ -216,7 +345,6 @@ void eat(HGame *game) //자기턴진행함수
 				break;
 			case 1:
 				// POO
-				hasPoo = true;
 				HDeck_push(target, myCard);
 				HDeck_push(target, topCard);
 				
@@ -224,7 +352,6 @@ void eat(HGame *game) //자기턴진행함수
 				break;
 			case 2:
 				// 4장 먹기
-				eatPoo = true;
 				HPlayer_eat(HGame_nowPlayer(game), myCard);
 				HPlayer_eat(HGame_nowPlayer(game), topCard);
 				HPlayer_eat(HGame_nowPlayer(game), HDeck_get(target, 0)->data);
@@ -233,8 +360,16 @@ void eat(HGame *game) //자기턴진행함수
 				HDeck_push(whatYouEat, topCard);
 				HDeck_push(whatYouEat, HDeck_get(target, 0)->data);
 				HDeck_push(whatYouEat, HDeck_get(target, 1)->data);
-				HDeck_clear(target);
 
+				// Gwang Processing
+				if(myCard->type == H_GWAN || topCard->type == H_GWAN ||
+					HDeck_get(target, 0)->data->type == H_GWAN ||
+					HDeck_get(target, 1)->data->type == H_GWAN)
+				{
+					hasGwan = true;
+				}
+				HDeck_clear(target);
+				
 				Renderer_notice("따닥 !", CARD_HEIGHT);
 
 				stealcard(game);
@@ -246,10 +381,11 @@ void eat(HGame *game) //자기턴진행함수
 		for(int t=0; t<2; ++t)
 		{
 			// If it's not, you should take two possibilities.
-			// 1. Your Card, 2. Top Card from Deck
 			HCard const *nowCard;
 			HDeck *target;
 
+			// Set Target
+			// 1. Your Card, 2. Top Card from Deck
 			if(t == 0)
 			{
 				nowCard = myCard;
@@ -274,7 +410,15 @@ void eat(HGame *game) //자기턴진행함수
 					HPlayer_eat(HGame_nowPlayer(game), HDeck_get(target, 0)->data);
 					HDeck_push(whatYouEat, nowCard);
 					HDeck_push(whatYouEat, HDeck_get(target, 0)->data);
+					
+					// Gwang Processing
+					if(nowCard->type == H_GWAN || HDeck_get(target, 0)->data->type == H_GWAN)
+					{
+						hasGwan = true;
+					}
+
 					HDeck_clear(target);
+					
 					break;
 				case 2:
 					// You have to select the card
@@ -283,11 +427,17 @@ void eat(HGame *game) //자기턴진행함수
 					HPlayer_eat(HGame_nowPlayer(game), HDeck_get(target, sel_num)->data);
 					HDeck_push(whatYouEat, nowCard);
 					HDeck_push(whatYouEat, HDeck_get(target, sel_num)->data);
+					
+					// Gwang Processing
+					if(nowCard->type == H_GWAN || HDeck_get(target, sel_num)->data->type == H_GWAN)
+					{
+						hasGwan = true;
+					}
+
 					HDeck_remove(target, sel_num);
 					break;
 				case 3:
 					// Eat the Poo!!!
-					eatPoo = true;
 					for(int i=0; i<3; ++i)
 					{
 						// Eat Every Cards in the Deck
@@ -296,6 +446,16 @@ void eat(HGame *game) //자기턴진행함수
 					}
 					HPlayer_eat(HGame_nowPlayer(game), nowCard);
 					HDeck_push(whatYouEat, nowCard);
+					
+					// Gwang Processing
+					if(myCard->type == H_GWAN || topCard->type == H_GWAN ||
+						HDeck_get(target, 0)->data->type == H_GWAN ||
+						HDeck_get(target, 1)->data->type == H_GWAN ||
+						HDeck_get(target, 2)->data->type == H_GWAN)
+					{
+						hasGwan = true;
+					}
+
 					HDeck_clear(target);
 					
 					Renderer_notice("올 ㅋ", CARD_HEIGHT);
@@ -304,59 +464,33 @@ void eat(HGame *game) //자기턴진행함수
 					break;
 			}
 		}
-
-		/*
-		// 2. New Card
-		target = (game->visible_cards)[topCard->month-1];
-		switch(target->size)
-		{
-			case 0:
-				// You Throw the Card
-				HDeck_push(target, topCard);
-				break;
-			case 1:
-				// You Can Eat This!
-				HPlayer_eat(HGame_nowPlayer(game), HDeck_get(target, 0)->data);
-				HPlayer_eat(HGame_nowPlayer(game), topCard);
-				HDeck_clear(target);
-
-				Renderer_noticeCard(topCard);
-				break;
-			case 2:
-				// You have to select the card
-				sel_num = Renderer_eatw(target);
-				HPlayer_eat(HGame_nowPlayer(game), HDeck_get(target, sel_num)->data);
-				HDeck_remove(target, sel_num);
-				
-				Renderer_noticeCard(topCard);
-				break;
-			case 3:
-				// Eat the Poo!!!
-				eatPoo = true;
-				for(int i=0; i<3; ++i)
-				{
-					HPlayer_eat(HGame_nowPlayer(game), HDeck_get(target, i)->data);
-				}
-				HPlayer_eat(HGame_nowPlayer(game), topCard);
-				HDeck_clear(target);
-				
-				Renderer_notice("개이득 !", CARD_HEIGHT);
-				Renderer_noticeCard(topCard);
-				
-				stealcard(game);
-				break;
-		}
-		*/
 	}
 
+	// Pan-SSuel-I
+	if(game->display_cards->size == 0)
+	{
+		stealcard(game);
+		Renderer_notice("Incredible!!! You clean the floor!!!", CARD_HEIGHT);
+	}
+
+	// Renderer
 	if(whatYouEat->size > 0)
 	{
 		HDeck_sort(whatYouEat);
 		Renderer_noticeCards(whatYouEat);
 	}
 	delete_HDeck(whatYouEat);
+
+	return hasGwan;
 }
 
+/*
+	ABOUT STEAL CARD
+
+	When special events occured, you can grab someone's PPI.
+	This will search for "Single PPI" first.
+	If there is no Single PPI, it will try to grab "Double PPI".
+*/
 void stealcard(HGame *game)//상대피 뺏어오기 함수
 {
 	if(game->current_player_num < 0 || game->current_player_num >= 3)
@@ -371,6 +505,7 @@ void stealcard(HGame *game)//상대피 뺏어오기 함수
 		HPlayer *you = NULL;
 		for(int i=0; i<3; ++i)
 		{
+			// Player Shadow Set
 			you = (game->player)[i];
 			if(you != me)
 			{
@@ -403,25 +538,91 @@ void stealcard(HGame *game)//상대피 뺏어오기 함수
 	}
 }
 
-void stop(void)
+/*
+	ABOUT STOP
+
+	stop() will transform "Game Point" to "Money".
+	It'll also
+*/
+bool stop(HGame *game, int winner, bool hasGwan)
 {
+	// Original Logic Idea by Jeong Min Gi
+	HPlayer *win_player = game->player[winner];
+
+	int money_base = WON_PER_POINT*win_player->score; // Default Prize
+	bool gameover = false;
+    
     //player1이 났을 시 쓰리고, 포고, 흔들기를 고려해 점수를 곱하여 보낸다
+    // Processing Go
+   	money_base += WON_PER_POINT*win_player->how_many_go;
+    if(win_player->how_many_go >= 3)
+    {
+    	money_base *= (2 << (win_player->how_many_go-3));
+    }
 
-    //플레이어2에게 보낸다
+    // Processing Nagari;
+    if(game->was_nagari)
+    {
+    	money_base *= 2;
+    }
 
-    //플레이어 2의 광박 , 피박, 멍텅구리 여부를 파악해 곱한다.
+    // Processing Meong-Bak
+    if(win_player->animDeck->size >= 7)
+    {
+    	money_base *= 2;
+    }
 
-    //돈으로 환산해 플레이어 1에게 보낸다.
+    // Show me your Money
+    for(int p=0; p<3; ++p)
+    {
+    	// Processing Private Transfer Rate
+    	HPlayer *player = game->player[p];
+    	int xRate = 1;
+    	if(p != winner)
+    	{
+    		// Ppi-Bak
+    		if(0 < player->normDeck->size && player->normDeck->size <= 5)
+    		{
+    			xRate *= 2;
+    		}
 
-    //만약 파산했을 경우, 0까지만 뺀 뒤에 빠진만큼 플레이어1에게 더하고 게임을 종료한다.
+    		// Gwang-Bak
+    		if(hasGwan && player->gwanDeck->size == 0)
+    		{
+    			xRate *= 2;
+    		}
 
-    //플레이어 3에게 플레이어1의 점수를 보낸다.
+    		/*
+    			ABOUT MONEY TRANSFER
 
-    //플레이어 3의 광박, 피박, 멍텅구리 여부를 파악해 곱한다.
+				i)  They have enough money       -> Show me the money
+				ii) They don't have enough money -> Kick Out
+    		*/
+    		if(player->money >= money_base)
+    		{
+    			// Can Afford to Pay
+    			win_player->money += money_base;
+    			player->money -= money_base;
+    		}
+    		else
+    		{
+    			// Cannot Afford to Pay
+    			win_player->money += player->money; // Their all possesion
+    			player->money = 0;
+    		}
 
-    //돈으로 환산해 플레이어 1에게 보낸다.
+    		if(player->money == 0)
+    		{
+    			// Kick Out
+    			player->hasNoMoney = true;
 
-    //만약 파산했을 경우, 0까지만 뺀 뒤에 빠진만큼 플레이어1에게 더하고 게임을 종료한다.
+    			Renderer_notice("You got financial bankrupt. So you called the police. You guys are arrested.", CARD_HEIGHT);
+    			gameover = true;
+    		}
+    	}
+    }
 
-    //패를 섞은 후 다시 시작한다.
+    HGame_setTurn(game, winner);
+
+    return gameover; // Whether Bankrupt or not
 }

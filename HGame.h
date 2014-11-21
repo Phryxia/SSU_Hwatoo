@@ -5,6 +5,9 @@
 #include "HDeck.h"
 #include "HPlayer.h"
 
+#define WON_PER_POINT 100
+#define WIN_BY_GWAN 0
+
 /*
 	HGame.h handle the main game.
 	They store some cards and players.
@@ -33,15 +36,14 @@ typedef struct _HGame_
 HGame *new_HGame(HCard const *CARD_SET);
 void   delete_HGame(HGame *me);
 
-void   HGame_reset(HGame *me, HCard const *CARD_SET); // This reset the level. But not reset every data.
-void   HGame_setTurn(HGame *me, HPlayer *who_win); // Make winner first.
-
+void   HGame_reset(HGame *me, HCard const *CARD_SET); // This reset the level. But not reset money data.
 void   HGame_draw(HGame *me, int selector);
 
 /*
 	ABOUT GAME SYSTEM
 */
 HPlayer *HGame_nowPlayer(HGame *me);
+int      HGame_willShake(HGame *me); // Return 
 void     HGame_refresh(HGame *me); // Re-Arrange Graphical
 void     HGame_calcScore(HGame *me);
 
@@ -49,6 +51,6 @@ void     HGame_calcScore(HGame *me);
 	ABOUT PLAYER
 */
 void HGame_initTurn(HGame *me);
-void HGame_moveTurn(HGame *me);
+void HGame_setTurn(HGame *me, int who);    // Make winner first.
 
 #endif

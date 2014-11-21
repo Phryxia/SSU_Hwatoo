@@ -30,23 +30,25 @@ HGame *new_HGame(HCard const *CARD_SET) // todo
 		// Allocate HPlayer & HDeck
 		for(int p=0; p<3; ++p)
 		{
-			(me->player)[p] = new_HPlayer();
+			me->player[p] = new_HPlayer();
+			me->player[p]->money = 100000; // 용돈
 		}
 
 		me->unknown_cards = new_HDeck();
 		for(int m=0; m<12; ++m)
 		{
-			(me->visible_cards)[m] = new_HDeck();
+			me->visible_cards[m] = new_HDeck();
 		}
 		me->display_cards = new_HDeck();
 
 		me->was_nagari = false;
 
-		HPlayer_setName((me->player)[0], "Min-Su");
-		HPlayer_setName((me->player)[1], "Yeong-Heui");
-		HPlayer_setName((me->player)[2], "Cheol-Su");
-
 		HGame_reset(me, CARD_SET);
+
+		// Name Set
+		HPlayer_setName(me->player[0], "Min-Su");
+		HPlayer_setName(me->player[1], "Yeong-Heui");
+		HPlayer_setName(me->player[2], "Cheol-Su");
 	}
 
 	return me;
@@ -57,12 +59,12 @@ void delete_HGame(HGame *me)
 	// Deallocate HPlayer & HDeck
 	for(int i=0; i<3; ++i)
 	{
-		delete_HPlayer((me->player)[i]);
+		delete_HPlayer(me->player[i]);
 	}
 	delete_HDeck(me->unknown_cards);
 	for(int i=0; i<12; ++i)
 	{
-		delete_HDeck((me->visible_cards)[i]);
+		delete_HDeck(me->visible_cards[i]);
 	}
 }
 
@@ -78,69 +80,61 @@ void HGame_reset(HGame *me, HCard const *CARD_SET)
 		printError("HGame", "Error", "reset(HGame *, HCard *)", "NULL ingredient Exception!!");
 	}
  #endif
-	// Prepare for ingredient cards.
+	
+	/*
+		SCENE RESET
+
+		i)  Floor State
+		ii) Player State
+	*/
+	// Floor State
 	for(int m=0; m<12; ++m)
 	{
-		HDeck_clear((me->visible_cards)[m]);
+		HDeck_clear(me->visible_cards[m]);
 	}
 	HDeck_clear(me->unknown_cards);
 	HDeck_import(me->unknown_cards, CARD_SET);
 	HDeck_shake(me->unknown_cards);
+
+	// Player State
+	for(int p=0; p<3; ++p)
+	{
+		HPlayer_init(me->player[p], false); // Don't Reset Money!
+	}
 	
-	// Card Distribution. From Last Card.
-	// Draw 6 cards on the floor
+	/*
+		CARD DISTRIBUTION
+
+		i)  Floor Cards
+		ii) Player Cards
+	*/
+	// Floor
 	for(int i=0; i<6; ++i)
 	{
 		HCard const *topCard = me->unknown_cards->first->prev->data;
 		HDeck_drawFrom((me->visible_cards)[topCard->month-1], me->unknown_cards, me->unknown_cards->size - 1);
 	}
 	
-	/*
-		PLAYER RESET
-	*/
-	me->current_player_num = 0;
+	// Player
 	for(int p=0; p<3; ++p)
 	{
-		HDeck_clear((me->player)[p]->myDeck);
 		for(int j=0; j<7; ++j) // Give 4 cards
 		{
 			HDeck_drawFrom((me->player)[p]->myDeck, me->unknown_cards, me->unknown_cards->size-1);
 		}
 	}
 
+	// Turn Init
+	HGame_initTurn(me);
+
  #ifdef DEBUG
 	printError("HGame", "Note", "reset(HGame *, HCard *)", "Game Reset Done");
  #endif
 }
 
-void HGame_setTurn(HGame *me, HPlayer *who_win)
-{
-#ifdef DEBUG
-	if(me == NULL)
-	{
-		printError("HGame", "Error", "setTurn(HGame *, HPlayer *)", "NULL HGame Pointer Exception!!");
-	}
-#endif
-	// Search index
-	int who = -1; // If nagari, no change will happen
-	for(int i=0; i<3; ++i)
-	{
-		if(me->player[i] == who_win)
-		{
-			who = i;
-			break;
-		}
-	}
-	
-	// Swap
-	for(int i=who; i>0; --i)
-	{
-		HPlayer *temp   = me->player[i];
-		me->player[i]   = me->player[i-1];
-		me->player[i-1] = temp;
-	}
-}
-
+/*
+	ABOUT GAME SYSTEM
+*/
 HPlayer *HGame_nowPlayer(HGame *me)
 {
 	if(me == NULL)
@@ -154,6 +148,45 @@ HPlayer *HGame_nowPlayer(HGame *me)
 	{
 		return (me->player)[me->current_player_num];
 	}
+}
+
+int HGame_willShake(HGame *me)
+{
+	/*
+		ABOUT WILL SHAKE
+
+		willShake() will search for 'shak-able' cards.
+
+		i)  There exists shakable cards. -> return number of shakable sets.
+		ii) There is no shakable cards.  -> return 0
+	*/
+
+	HPlayer *player = HGame_nowPlayer(me);
+	int counter  = 0;
+	int same_num = 0;
+	HCard const *prev_card = HDeck_get(player->myDeck, 0)->data;
+	for(int c=1; c<player->myDeck->size; ++c)
+	{
+		// Search for evrery cards. Deck should be sorted correctly.
+		HCard const *this_card = HDeck_get(player->myDeck, c)->data;
+
+		if(prev_card->month == this_card->month && !player->shaked[this_card->month-1])
+		{
+			++counter;
+
+			if(counter == 2)
+			{
+				++same_num;
+				player->shaked[this_card->month-1] = true; // Protect Duplication
+			}
+		}
+		else
+		{
+			counter = 0;
+		}
+	}
+
+	return same_num;
 }
 
 void HGame_refresh(HGame *me)
@@ -170,7 +203,7 @@ void HGame_refresh(HGame *me)
 	}
 }
 
-void HGame_calcScore(HGame *game)//점수산출함수
+void HGame_calcScore(HGame *game) //점수산출함수
 {
 	/*
 		Calculate Every Player's Score.
@@ -267,7 +300,7 @@ void HGame_calcScore(HGame *game)//점수산출함수
     	{
     		HCard const *card = HDeck_get(player->lineDeck, c)->data;
 
-    		switch(card->type)
+    		switch(card->five_type)
     		{
     			case HF_RED:
     				++red_cnt;
@@ -341,6 +374,9 @@ void HGame_calcScore(HGame *game)//점수산출함수
 	}
 }
 
+/*
+	ABOUT PLAYER
+*/
 void HGame_initTurn(HGame *me)
 {
 	me->current_player_num = 0;
@@ -350,18 +386,13 @@ void HGame_initTurn(HGame *me)
  #endif
 }
 
-void HGame_moveTurn(HGame *me)
+void HGame_setTurn(HGame *me, int who)
 {
-	if(me->current_player_num < 2)
+	// Swap
+	for(int i=who; i>0; --i)
 	{
-		++(me->current_player_num);
+		HPlayer *temp   = me->player[i];
+		me->player[i]   = me->player[i-1];
+		me->player[i-1] = temp;
 	}
-	else
-	{
-		me->current_player_num = 0;
-	}
-
- #ifdef DEBUG
-	printError("HGame", "Note", "moveTurn(HGame *)", "Turn Move Done");
- #endif
 }

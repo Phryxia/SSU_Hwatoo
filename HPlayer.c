@@ -65,7 +65,6 @@ void HPlayer_init(HPlayer *me, bool money_reset)
 	me->score        = 0;
 	me->score_lastgo = 0;
 	me->hasChangeAP  = false;
-	me->hasNoMoney   = false;
 
 	for(int m=0; m<12; ++m)
 	{

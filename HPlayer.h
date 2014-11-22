@@ -31,7 +31,6 @@ typedef struct _HPlayer_
 	int    score_lastgo;
 
 	bool hasChangeAP; // PPI -> Animal changed?
-	bool hasNoMoney;
 	bool shaked[12];
 } HPlayer;
 

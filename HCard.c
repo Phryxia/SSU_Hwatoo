@@ -146,6 +146,44 @@ bool HCard_isBird(HCard const *card)
 	}
 }
 
+int HCard_comp(HCard const *x, HCard const *y)
+{
+	if(x->month > y->month)
+	{
+		return 1;
+	}
+	else if(x->month < y->month)
+	{
+		return -1;
+	}
+	else
+	{
+		if(x->type > y->type)
+		{
+			return 1;
+		}
+		else if(x->type < y->type)
+		{
+			return -1;
+		}
+		else
+		{
+			if(x->five_type > y->five_type)
+			{
+				return 1;
+			}
+			else if(x->five_type < y->five_type)
+			{
+				return -1;
+			}
+			else
+			{
+				return 0;
+			}
+		}
+	}
+}
+
 void hprint(HCard const *card)
 {
 #ifdef DEBUG
@@ -206,3 +244,4 @@ void hprint(HCard const *card)
 		}
 	}
 }
+

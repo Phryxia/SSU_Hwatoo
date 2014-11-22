@@ -47,6 +47,7 @@ void delete_HCard(HCard *card);
 
 // Interface
 bool HCard_isBird(HCard const *card);
+int  HCard_comp(HCard const *x, HCard const *y);
 
 // For Debugging
 void hprint(HCard const *card);

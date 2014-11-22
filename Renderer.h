@@ -32,5 +32,6 @@ void Renderer_help(void);
 bool Renderer_exit(void);
 
 void Renderer_intro(void);
+bool Renderer_save(void);
 
 #endif

@@ -7,10 +7,11 @@
 #include "HPlayer.h"
 #include "HGame.h"
 #include "HGUI.h"
+#include "HFileIO.h"
 #include "Renderer.h"
 #include "Debug_Center.h"
 
-void doGame(HGame *game, HCard const *CARD_SET);
+void doGame(HGame *game, HCard const *CARD_SET, bool wasLoaded);
 bool eat(HGame *game, int card_pointer);
 void stealcard(HGame *game);
 bool stop(HGame *game, int winner, bool hasGwan);
@@ -59,12 +60,19 @@ int main(void)
         {
             case 0: 
                 //game start
-            	HGame_reset(GAME, CARD_SET);
-                doGame(GAME, CARD_SET);
+                doGame(GAME, CARD_SET, false);
                 break;
             case 1:
                 //load game
-                printf("load game\n");
+            	if(HFileIO_loadGame(GAME, CARD_SET))
+            	{
+            		// Load Success
+            		doGame(GAME, CARD_SET, true);
+            	}
+            	else
+            	{
+            		// Fail
+            	}
                 break;
             case 2:
 				gameEnd = true;
@@ -83,25 +91,86 @@ int main(void)
 }
 
 //int card_pointer = 0;
-void doGame(HGame *game, HCard const *CARD_SET)//전체게임함수
+void doGame(HGame *game, HCard const *CARD_SET, bool wasLoaded)//전체게임함수
 {
 	// Initialize Player Turn
-	HGame_initTurn(game);
+	if(!wasLoaded)
+	{
+		HGame_reset(game, CARD_SET);
+		HGame_initTurn(game);
+	}
+	else
+	{
+		// Chong-Tong Examination
+		int how_many_pres = 0;
+		int pres_who = -1;
+		for(int p=0; p<3; ++p)
+		{
+			HPlayer *player = game->player[p];
+			HCard const *prev_card = HDeck_get(player->myDeck, 0)->data;
+			HCard const *this_card = NULL;
+			int same_count = 0;
+			for(int c=1; c<player->myDeck->size; ++c)
+			{
+				this_card = HDeck_get(player->myDeck, c)->data;
+				if(prev_card->month == this_card->month)
+				{
+					++same_count;
+
+					if(same_count == 3)
+					{
+						++how_many_pres;
+						pres_who = p;
+					}
+				}
+				else
+				{
+					same_count = 0;
+				}
+				prev_card = this_card;
+			}
+		}
+		if(how_many_pres == 1)
+		{
+			// Chong-Tong
+			Renderer_notice("What the... You are president! 0~0 You win!", CARD_HEIGHT);
+			game->player[pres_who]->score += 10;
+			stop(game, pres_who, false);
+			Renderer_statistics(game);
+			HGame_reset(game, CARD_SET);
+		}
+	}
 	int card_pointer = 0;
 	Renderer_game(game, card_pointer);
-	int loop = 0;
 
 	bool continue_game = true;
 	while(continue_game)
 	{
-		for(int p=0; p<3 && continue_game; ++p)
+		// When loaded, first time is preserved turn.
+		// But after that, first time is 0 Player's turn.
+		int p;
+		if(wasLoaded)
+		{
+			p = game->current_player_num;
+			wasLoaded = false;
+		}
+		else
+		{
+			p = 0;
+		}
+		for( ; p<3 && continue_game; ++p)
 		{
 			//인터페이스 : e(exit), b(잔고), h(키설명),save(저장).load
 			game->current_player_num = p;
 			HPlayer *player = game->player[p];
 			card_pointer = 0;
-			Renderer_game(game, card_pointer);	
-			
+			Renderer_game(game, card_pointer);
+
+			if(HGame_willShake(game))
+			{	
+				Renderer_notice("Shake it~ Shake it~", CARD_HEIGHT);
+			}
+
 			bool isSelecting = true;
 			while(isSelecting)
 			{
@@ -165,6 +234,20 @@ void doGame(HGame *game, HCard const *CARD_SET)//전체게임함수
 							isSelecting = false;
 						}
 						break;
+
+					case 's':
+						if(Renderer_save())
+						{
+							if(HFileIO_saveGame(game, CARD_SET))
+							{
+								Renderer_notice("Save Done!", CARD_HEIGHT);
+							}
+							else
+							{
+								Renderer_notice("Save Fail!", CARD_HEIGHT);
+							}
+						}
+						break;
 				}
 			}
 
@@ -174,21 +257,6 @@ void doGame(HGame *game, HCard const *CARD_SET)//전체게임함수
 			}
 			
 			//eat함수
-			int  shake_num = HGame_willShake(game);
-			if(shake_num == 4)
-			{
-				// Chong-Tong
-				Renderer_notice("What the... You are president! 0~0 You win!", CARD_HEIGHT);
-				player->score += 10;
-				stop(game, p, false);
-				Renderer_statistics(game);
-				HGame_reset(game, CARD_SET);
-				break;
-			}
-			if(shake_num)
-			{
-				Renderer_notice("Shake it~ Shake it~", CARD_HEIGHT);
-			}
 			bool hasGwan   = eat(game, card_pointer);
 	
 			//점수산출score함수
@@ -422,7 +490,14 @@ bool eat(HGame *game, int card_pointer) //자기턴진행함수
 					break;
 				case 2:
 					// You have to select the card
-					sel_num = Renderer_eatw(target);
+					if(HCard_comp(HDeck_get(target, 0)->data, HDeck_get(target, 1)->data) == 0)
+					{
+						sel_num = 0;
+					}
+					else
+					{
+						sel_num = Renderer_eatw(target);
+					}
 					HPlayer_eat(HGame_nowPlayer(game), nowCard);
 					HPlayer_eat(HGame_nowPlayer(game), HDeck_get(target, sel_num)->data);
 					HDeck_push(whatYouEat, nowCard);
@@ -466,6 +541,13 @@ bool eat(HGame *game, int card_pointer) //자기턴진행함수
 		}
 	}
 
+	// Renderer
+	if(whatYouEat->size > 0)
+	{
+		HDeck_sort(whatYouEat);
+		Renderer_noticeCards(whatYouEat);
+	}
+
 	// Pan-SSuel-I
 	if(game->display_cards->size == 0)
 	{
@@ -473,12 +555,6 @@ bool eat(HGame *game, int card_pointer) //자기턴진행함수
 		Renderer_notice("Incredible!!! You clean the floor!!!", CARD_HEIGHT);
 	}
 
-	// Renderer
-	if(whatYouEat->size > 0)
-	{
-		HDeck_sort(whatYouEat);
-		Renderer_noticeCards(whatYouEat);
-	}
 	delete_HDeck(whatYouEat);
 
 	return hasGwan;
@@ -570,6 +646,9 @@ bool stop(HGame *game, int winner, bool hasGwan)
     if(win_player->animDeck->size >= 7)
     {
     	money_base *= 2;
+    	char contents[64];
+    	sprintf(contents, "Wow %s, you did Meong-Teong-Gu-Ri!", win_player->name);
+    	Renderer_notice(contents, CARD_HEIGHT);
     }
 
     // Show me your Money
@@ -584,12 +663,18 @@ bool stop(HGame *game, int winner, bool hasGwan)
     		if(0 < player->normDeck->size && player->normDeck->size <= 5)
     		{
     			xRate *= 2;
+    			char contents[64];
+    			sprintf(contents, "Player %s, you are PPI-bak!", player->name);
+    			Renderer_notice(contents, CARD_HEIGHT);
     		}
 
     		// Gwang-Bak
     		if(hasGwan && player->gwanDeck->size == 0)
     		{
     			xRate *= 2;
+    			char contents[64];
+    			sprintf(contents, "Player %s, you are GWANG-bak!", player->name);
+    			Renderer_notice(contents, CARD_HEIGHT);
     		}
 
     		/*
@@ -598,25 +683,25 @@ bool stop(HGame *game, int winner, bool hasGwan)
 				i)  They have enough money       -> Show me the money
 				ii) They don't have enough money -> Kick Out
     		*/
-    		if(player->money >= money_base)
+    		if(player->money > xRate*money_base)
     		{
     			// Can Afford to Pay
-    			win_player->money += money_base;
-    			player->money -= money_base;
+    			win_player->money += xRate*money_base;
+    			player->money -= xRate*money_base;
+
+    			char contents[64];
+    			sprintf(contents, "Player %s, you lose %d won...", player->name, xRate*money_base);
+    			Renderer_notice(contents, CARD_HEIGHT);
     		}
     		else
     		{
     			// Cannot Afford to Pay
     			win_player->money += player->money; // Their all possesion
     			player->money = 0;
-    		}
 
-    		if(player->money == 0)
-    		{
-    			// Kick Out
-    			player->hasNoMoney = true;
-
-    			Renderer_notice("You got financial bankrupt. So you called the police. You guys are arrested.", CARD_HEIGHT);
+    			char contents[128];
+    			sprintf(contents, "%s got financial bankrupt. So he/she called the police. You guys are arrested.", player->name);
+    			Renderer_notice(contents, CARD_HEIGHT);
     			gameover = true;
     		}
     	}

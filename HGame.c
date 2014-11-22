@@ -122,6 +122,7 @@ void HGame_reset(HGame *me, HCard const *CARD_SET)
 		{
 			HDeck_drawFrom((me->player)[p]->myDeck, me->unknown_cards, me->unknown_cards->size-1);
 		}
+		HDeck_sort(me->player[p]->myDeck);
 	}
 
 	// Turn Init

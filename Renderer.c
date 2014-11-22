@@ -978,6 +978,32 @@ bool Renderer_exit(void)
 	}
 }
 
+bool Renderer_save(void)
+{
+	// If there is 9-Five, then draw the UI. Then make a question.
+	char LABEL[] = "Do you really want to save? [y/n]";
+	int len = strlen(LABEL);
+
+	HGUI_cSet(RED, BACKGROUND, DARK);
+	HGUI_cSet(RED, FOREGROUND, BRIGHT);
+	HGUI_window(SCR_WIDTH/2 - len/2 - 1, SCR_HEIGHT/2 - 1, len+4, CARD_HEIGHT);
+
+	HGUI_cSet(WHITE, FOREGROUND, BRIGHT);
+	HGUI_text(SCR_WIDTH/2+1, SCR_HEIGHT/2+1, LABEL, false, ALIGN_CENTER);
+	
+	// Key Input
+	while(true)
+	{
+		switch(HGUI_getch())
+		{
+			case 'y':
+				return true;
+			case 'n':
+				return false;
+		}
+	}
+}
+
 void Renderer_intro(void)
 {
 	HGUI_erase();

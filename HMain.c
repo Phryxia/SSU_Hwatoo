@@ -90,7 +90,6 @@ int main(void)
     return 0;
 }
 
-//int card_pointer = 0;
 void doGame(HGame *game, HCard const *CARD_SET, bool wasLoaded)//전체게임함수
 {
 	// Initialize Player Turn
@@ -99,47 +98,37 @@ void doGame(HGame *game, HCard const *CARD_SET, bool wasLoaded)//전체게임함
 		HGame_reset(game, CARD_SET);
 		HGame_initTurn(game);
 	}
-	else
-	{
-		// Chong-Tong Examination
-		int how_many_pres = 0;
-		int pres_who = -1;
-		for(int p=0; p<3; ++p)
-		{
-			HPlayer *player = game->player[p];
-			HCard const *prev_card = HDeck_get(player->myDeck, 0)->data;
-			HCard const *this_card = NULL;
-			int same_count = 0;
-			for(int c=1; c<player->myDeck->size; ++c)
-			{
-				this_card = HDeck_get(player->myDeck, c)->data;
-				if(prev_card->month == this_card->month)
-				{
-					++same_count;
 
-					if(same_count == 3)
-					{
-						++how_many_pres;
-						pres_who = p;
-					}
-				}
-				else
-				{
-					same_count = 0;
-				}
-				prev_card = this_card;
-			}
-		}
-		if(how_many_pres == 1)
-		{
-			// Chong-Tong
-			Renderer_notice("What the... You are president! 0~0 You win!", CARD_HEIGHT);
-			game->player[pres_who]->score += 10;
-			stop(game, pres_who, false);
-			Renderer_statistics(game);
-			HGame_reset(game, CARD_SET);
-		}
+	/*
+		ABOUT CHONG-TONG
+		Chong-tong should exist only one.
+		If there are more than 2 chong-tong, game will be nagari.
+		To examine whether chong-tong or not, this iterate every cards they have.
+	*/
+	// Chong-Tong Examination
+	int pres_who  = -1;
+	int pres_flag = HGame_isPres(game, &pres_who);
+	
+	if(pres_flag == 1)
+	{
+		// Chong-Tong
+		game->player[pres_who]->score += 10;
+		
+		Renderer_notice("What the... You are president! 0~0 You win!", CARD_HEIGHT);
+		stop(game, pres_who, false);
+		Renderer_statistics(game);
+		HGame_reset(game, CARD_SET);
 	}
+	else if(pres_flag == -1)
+	{
+		// Nagari '~'
+		game->was_nagari = true;
+
+		Renderer_notice("Congratulation! This phase is Nagari! Next phase will make x2 money.", CARD_HEIGHT);
+		Renderer_statistics(game);
+		HGame_reset(game, CARD_SET);
+	}
+
 	int card_pointer = 0;
 	Renderer_game(game, card_pointer);
 
@@ -257,7 +246,14 @@ void doGame(HGame *game, HCard const *CARD_SET, bool wasLoaded)//전체게임함
 			}
 			
 			//eat함수
-			bool hasGwan   = eat(game, card_pointer);
+			bool hasGwan = eat(game, card_pointer);
+
+			// Pan-SSuel-I
+			if(game->display_cards->size == 0 && player->myDeck->size > 0)
+			{
+				stealcard(game);
+				Renderer_notice("Incredible!!! You clean the floor!!!", CARD_HEIGHT);
+			}
 	
 			//점수산출score함수
 			HGame_calcScore(game);
@@ -547,13 +543,7 @@ bool eat(HGame *game, int card_pointer) //자기턴진행함수
 		HDeck_sort(whatYouEat);
 		Renderer_noticeCards(whatYouEat);
 	}
-
-	// Pan-SSuel-I
-	if(game->display_cards->size == 0)
-	{
-		stealcard(game);
-		Renderer_notice("Incredible!!! You clean the floor!!!", CARD_HEIGHT);
-	}
+	HGame_refresh(game);
 
 	delete_HDeck(whatYouEat);
 

@@ -375,6 +375,64 @@ void HGame_calcScore(HGame *game) //점수산출함수
 	}
 }
 
+int  HGame_isPres(HGame *game, int *who)
+{
+	/*
+		ABOUT CHONG-TONG
+		Chong-tong should exist only one.
+		If there are more than 2 chong-tong, game will be nagari.
+		To examine whether chong-tong or not, this iterate every cards they have.
+	*/
+	// Chong-Tong Examination
+	int how_many_pres = 0;
+	int pres_who      = -1;
+	for(int p=0; p<3; ++p)
+	{
+		// Examine every player's cards
+		HPlayer *player = game->player[p];
+		HCard const *prev_card = HDeck_get(player->myDeck, 0)->data;
+		HCard const *this_card = NULL;
+		int same_count = 0;
+		
+		for(int c=1; c<player->myDeck->size; ++c)
+		{
+			// Compare with previous card
+			this_card = HDeck_get(player->myDeck, c)->data;
+			if(prev_card->month == this_card->month)
+			{
+				++same_count;
+				if(same_count == 3)
+				{
+					++how_many_pres;
+					pres_who = p; // Assign Current Player as PResident
+					break;
+				}
+			}
+			else
+			{
+				// Reset when new card appears
+				same_count = 0;
+			}
+			// Shift Card
+			prev_card = this_card;
+		}
+	}
+
+	if(how_many_pres == 1)
+	{
+		*who = pres_who;
+		return 1; // Chong-Tong
+	}
+	else if(how_many_pres > 1)
+	{
+		return -1; // Nagari
+	}
+	else
+	{
+		return 0;
+	}
+}
+
 /*
 	ABOUT PLAYER
 */

@@ -244,4 +244,3 @@ void hprint(HCard const *card)
 		}
 	}
 }
-

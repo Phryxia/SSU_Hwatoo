@@ -751,7 +751,7 @@ void Renderer_game(HGame *me, int marker)
 /*
 	DIALOGUE
 */
-int Renderer_eatw(HDeck *deck)
+int  Renderer_eatw(HDeck *deck)
 {
 	char LABEL[] = "What do you want to eat?[1/2]";
 	int len = strlen(LABEL);
@@ -936,7 +936,7 @@ void Renderer_help(void)
 
 	HGUI_cSet(RED, BACKGROUND, DARK);	
 	HGUI_cSet(RED, FOREGROUND, BRIGHT);
-	HGUI_window(left, up, 52, 13);
+	HGUI_window(left, up, 52, 14);
 
 	HGUI_cSet(WHITE, FOREGROUND, BRIGHT);
 	HGUI_text(SCR_WIDTH/2, up+1, ": HELP PAGE :", false, ALIGN_CENTER);
@@ -948,6 +948,7 @@ void Renderer_help(void)
 	HGUI_text(left+2, up+8 , "[b] : See player's possession", false, ALIGN_LEFT);
 	HGUI_text(left+2, up+9 , "[e] : Exit", false, ALIGN_LEFT);
 	HGUI_text(left+2, up+10, "[h] : Help Page", false, ALIGN_LEFT);
+	HGUI_text(left+2, up+11, "[s] : Save", false, ALIGN_LEFT);
 
 	HGUI_getch();
 }

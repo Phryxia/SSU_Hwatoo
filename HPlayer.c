@@ -66,6 +66,7 @@ void HPlayer_init(HPlayer *me, bool money_reset)
 	me->score_lastgo = 0;
 	me->hasChangeAP  = false;
 
+	// Reset Shaked Flags
 	for(int m=0; m<12; ++m)
 	{
 		me->shaked[m] = false;

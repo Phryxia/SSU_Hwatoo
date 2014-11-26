@@ -1,5 +1,5 @@
-Hwatoo.exe: Debug_Center.o HMain.o HDeck.o HCard.o HPlayer.o HGame.o HGUI.o Renderer.o HFileIO.o
-	gcc -std=c99 -D DEBUG -g -o Hwatoo.exe Debug_Center.o HMain.o HDeck.o HCard.o HPlayer.o HGame.o HGUI.o Renderer.o HFileIO.o
+Hwatoo.exe: Debug_Center.o HDeck.o HCard.o HPlayer.o HGame.o HGUI.o Renderer.o HNotice.o HFileIO.o HFlow.o HMain.o
+	gcc -std=c99 -D DEBUG -g -o Hwatoo.exe Debug_Center.o HCard.o HDeck.o HPlayer.o HGame.o HGUI.o Renderer.o HNotice.o HFileIO.o HFlow.o HMain.o
 
 Debug_Center.o: Debug_Center.c
 	gcc -std=c99 -D DEBUG -g -c Debug_Center.c
@@ -27,3 +27,9 @@ Renderer.o: Renderer.c
 
 HFileIO.o: HFileIO.c
 	gcc -std=c99 -D DEBUG -g -c HFileIO.c
+
+HNotice.o: HNotice.c
+	gcc -std=c99 -D DEBUG -g -c HNotice.c
+
+HFlow.o: HFlow.c
+	gcc -std=c99 -D DEBUG -g -c HFlow.c

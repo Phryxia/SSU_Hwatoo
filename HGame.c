@@ -34,12 +34,12 @@ HGame *new_HGame(HCard const *CARD_SET) // todo
 			me->player[p]->money = 100000; // 용돈
 		}
 
-		me->unknown_cards = new_HDeck();
-		for(int m=0; m<12; ++m)
+		me->unknown_cards = new_HDeck();   // Card Chunk
+		for(int m=0; m<12; ++m)            // Floor Card
 		{
 			me->visible_cards[m] = new_HDeck();
 		}
-		me->display_cards = new_HDeck();
+		me->display_cards = new_HDeck();   // Display Buffer
 
 		me->was_nagari = false;
 
@@ -128,6 +128,9 @@ void HGame_reset(HGame *me, HCard const *CARD_SET)
 	// Turn Init
 	HGame_initTurn(me);
 
+	// Refresh
+	HGame_refresh(me);
+
  #ifdef DEBUG
 	printError("HGame", "Note", "reset(HGame *, HCard *)", "Game Reset Done");
  #endif
@@ -179,17 +182,30 @@ int HGame_willShake(HGame *me)
 			{
 				++same_num;
 				player->shaked[this_card->month-1] = true; // Protect Duplication
+				counter = 0;
 			}
 		}
 		else
 		{
 			counter = 0;
 		}
+
+		prev_card = this_card; // Shifting
 	}
 
 	return same_num;
 }
 
+/*
+	ABOUT REFRESH
+
+	This is very important function.
+	This will flush display buffer and sort again.
+	This will use when :
+
+	i)   When Game is started
+	ii)  Rendering Floor Cards
+*/
 void HGame_refresh(HGame *me)
 {
 	// Clear the Display Buffer
@@ -202,6 +218,7 @@ void HGame_refresh(HGame *me)
 			HDeck_push(me->display_cards, HDeck_get((me->visible_cards)[m], c)->data);
 		}
 	}
+	HDeck_sort(me->display_cards);
 }
 
 void HGame_calcScore(HGame *game) //점수산출함수

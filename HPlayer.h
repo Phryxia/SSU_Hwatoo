@@ -31,7 +31,7 @@ typedef struct _HPlayer_
 	int    score_lastgo;
 
 	bool hasChangeAP; // PPI -> Animal changed?
-	bool shaked[12];
+	bool hasShake;
 } HPlayer;
 
 HPlayer *new_HPlayer(void);       // Make a new HPlayer and return its pointer.

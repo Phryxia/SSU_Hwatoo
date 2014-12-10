@@ -3,15 +3,15 @@
   [ was_nagari ] 0
 	> [ HPlayer : Player_1 ]
 	  [ name  ] Min-Su
-	  [ money ] 102300
+	  [ money ] 100000
 	  [ gonum ] 0
 	  [ score ] 0
 	  [ goscr ] 0
 	  [ APchn ] 0
-	  [ shake ] 0 0 0 0 0 0 0 0 0 0 0 0
+	  [ shake ] 0
 		> [ HDeck : myDeck ]
 		  [ size ] 7
-		  [ card ] 18 17 35 32 38 47 44
+		  [ card ] 13 22 25 30 29 34 39
 		<
 		> [ HDeck : normDeck ]
 		  [ size ] 0
@@ -32,15 +32,15 @@
 	<
 	> [ HPlayer : Player_2 ]
 	  [ name  ] Yeong-Heui
-	  [ money ] 107700
+	  [ money ] 100000
 	  [ gonum ] 0
 	  [ score ] 0
 	  [ goscr ] 0
 	  [ APchn ] 0
-	  [ shake ] 0 0 0 0 0 0 0 0 0 0 0 0
+	  [ shake ] 1
 		> [ HDeck : myDeck ]
 		  [ size ] 7
-		  [ card ]  9  8 13 25 30 28 41
+		  [ card ]  5 27 35 32 33 42 43
 		<
 		> [ HDeck : normDeck ]
 		  [ size ] 0
@@ -61,15 +61,15 @@
 	<
 	> [ HPlayer : Player_3 ]
 	  [ name  ] Cheol-Su
-	  [ money ] 90000
+	  [ money ] 100000
 	  [ gonum ] 0
 	  [ score ] 0
 	  [ goscr ] 0
 	  [ APchn ] 0
-	  [ shake ] 0 0 0 0 0 0 0 0 0 0 0 0
+	  [ shake ] 0
 		> [ HDeck : myDeck ]
 		  [ size ] 7
-		  [ card ]  3  1  4 19 29 42 45
+		  [ card ]  1 12 17 23 24 45 46
 		<
 		> [ HDeck : normDeck ]
 		  [ size ] 0
@@ -90,7 +90,7 @@
 	<
 	> [ HDeck : Unknown_cards ]
 	  [ size ] 21
-	  [ card ] 39 37 12 16 24 21  6 15 14 26 10  2  0 33 40 34  5 36 22  7 20
+	  [ card ] 16 18 40  3  4  0  6 41  8 31 36 20 47  7 14 21 38 11 26 19  2
 	<
 	> [ HDeck : Visible_cards(0) ]
 	  [ size ] 0
@@ -101,47 +101,47 @@
 	  [ card ]
 	<
 	> [ HDeck : Visible_cards(2) ]
-	  [ size ] 1
-	  [ card ] 11
+	  [ size ] 2
+	  [ card ] 10  9
 	<
 	> [ HDeck : Visible_cards(3) ]
-	  [ size ] 0
-	  [ card ]
+	  [ size ] 1
+	  [ card ] 15
 	<
 	> [ HDeck : Visible_cards(4) ]
 	  [ size ] 0
 	  [ card ]
 	<
 	> [ HDeck : Visible_cards(5) ]
-	  [ size ] 1
-	  [ card ] 23
+	  [ size ] 0
+	  [ card ]
 	<
 	> [ HDeck : Visible_cards(6) ]
-	  [ size ] 1
-	  [ card ] 27
+	  [ size ] 0
+	  [ card ]
 	<
 	> [ HDeck : Visible_cards(7) ]
 	  [ size ] 1
-	  [ card ] 31
+	  [ card ] 28
 	<
 	> [ HDeck : Visible_cards(8) ]
 	  [ size ] 0
 	  [ card ]
 	<
 	> [ HDeck : Visible_cards(9) ]
+	  [ size ] 1
+	  [ card ] 37
+	<
+	> [ HDeck : Visible_cards(10) ]
 	  [ size ] 0
 	  [ card ]
 	<
-	> [ HDeck : Visible_cards(10) ]
-	  [ size ] 1
-	  [ card ] 43
-	<
 	> [ HDeck : Visible_cards(11) ]
 	  [ size ] 1
-	  [ card ] 46
+	  [ card ] 44
 	<
 	> [ HDeck : Display_cards ]
 	  [ size ] 6
-	  [ card ] 11 23 27 31 43 46
+	  [ card ] 10  9 15 28 37 44
 	<
 <

@@ -6,6 +6,9 @@
 
 int main(void)
 {
+    /*
+        BOOT PROGRAM
+    */
 	logReset();
 	srand(time(NULL));
 	Renderer_intro();

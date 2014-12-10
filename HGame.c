@@ -7,6 +7,7 @@
 #include "HPlayer.h"
 #include "HGame.h"
 #include "HGUI.h"
+#include "HNotice.h"
 #include "Debug_Center.h"
 
 HGame *new_HGame(HCard const *CARD_SET) // todo 
@@ -154,46 +155,34 @@ HPlayer *HGame_nowPlayer(HGame *me)
 	}
 }
 
-int HGame_willShake(HGame *me)
+void HGame_autoshake(HGame *me)
 {
-	/*
-		ABOUT WILL SHAKE
-
-		willShake() will search for 'shak-able' cards.
-
-		i)  There exists shakable cards. -> return number of shakable sets.
-		ii) There is no shakable cards.  -> return 0
-	*/
-
-	HPlayer *player = HGame_nowPlayer(me);
-	int counter  = 0;
-	int same_num = 0;
-	HCard const *prev_card = HDeck_get(player->myDeck, 0)->data;
-	for(int c=1; c<player->myDeck->size; ++c)
+	for(int p=0; p<3; ++p)
 	{
-		// Search for evrery cards. Deck should be sorted correctly.
-		HCard const *this_card = HDeck_get(player->myDeck, c)->data;
-
-		if(prev_card->month == this_card->month && !player->shaked[this_card->month-1])
+		HPlayer *player = me->player[p];
+		HCard const *pre = HDeck_get(player->myDeck, 0)->data;
+		HCard const *now = NULL;
+		int same = 1;
+		for(int i=1; i<player->myDeck->size; ++i)
 		{
-			++counter;
-
-			if(counter == 2)
+			now = HDeck_get(player->myDeck, i)->data;
+			if(now->month == pre->month)
 			{
-				++same_num;
-				player->shaked[this_card->month-1] = true; // Protect Duplication
-				counter = 0;
+				++same;
+				if(same == 3)
+				{
+					HNotice_Shake(player);
+					player->hasShake = true;
+					break;
+				}
 			}
+			else
+			{
+				same = 1;
+			}
+			pre = now;
 		}
-		else
-		{
-			counter = 0;
-		}
-
-		prev_card = this_card; // Shifting
 	}
-
-	return same_num;
 }
 
 /*
@@ -238,6 +227,7 @@ void HGame_calcScore(HGame *game) //점수산출함수
 		int score_anim = 0; // Animal
 		int score_line = 0; // Ddi
 		int score_gwan = 0; // Gwang
+		int score_go   = 0; // Go
     	int xRate      = 1;
 
     	//피 점수 계산
@@ -385,10 +375,16 @@ void HGame_calcScore(HGame *game) //점수산출함수
     			break;
     	}
 
+    	// 고 점수 계산
+    	/*
+    		Go Score Calculation
+    	*/
+    	score_go = player->how_many_go;
+
     	/*
     		Total Calculation
     	*/
-    	player->score = xRate*(score_norm + score_anim + score_line + score_gwan);
+    	player->score = xRate*(score_norm + score_anim + score_line + score_gwan + score_go);
 	}
 }
 
@@ -409,7 +405,7 @@ int  HGame_isPres(HGame *game, int *who)
 		HPlayer *player = game->player[p];
 		HCard const *prev_card = HDeck_get(player->myDeck, 0)->data;
 		HCard const *this_card = NULL;
-		int same_count = 0;
+		int same_count = 1;
 		
 		for(int c=1; c<player->myDeck->size; ++c)
 		{
@@ -418,7 +414,7 @@ int  HGame_isPres(HGame *game, int *who)
 			if(prev_card->month == this_card->month)
 			{
 				++same_count;
-				if(same_count == 3)
+				if(same_count == 4)
 				{
 					++how_many_pres;
 					pres_who = p; // Assign Current Player as PResident
@@ -428,7 +424,7 @@ int  HGame_isPres(HGame *game, int *who)
 			else
 			{
 				// Reset when new card appears
-				same_count = 0;
+				same_count = 1;
 			}
 			// Shift Card
 			prev_card = this_card;
@@ -446,7 +442,7 @@ int  HGame_isPres(HGame *game, int *who)
 	}
 	else
 	{
-		return 0;
+		return 0; // No Chong-Tong
 	}
 }
 

@@ -43,7 +43,7 @@ void   HGame_draw(HGame *me, int selector);
 	ABOUT GAME SYSTEM
 */
 HPlayer *HGame_nowPlayer(HGame *me);
-int      HGame_willShake(HGame *me); // Return 
+void     HGame_autoshake(HGame *me);
 void     HGame_refresh(HGame *me); // Re-Arrange Graphical
 void     HGame_calcScore(HGame *me);
 int      HGame_isPres(HGame *game, int *who);

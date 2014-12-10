@@ -94,16 +94,13 @@ void HFileIO_exportPlayer(FILE *oFile, HPlayer *player, HCard const *CARD_SET, c
 
 	HFileIO_tab(oFile, depth);
 	fprintf(oFile, "  [ shake ]");
-	for(int m=0; m<12; ++m)
+	if(player->hasShake)
 	{
-		if(player->shaked[m])
-		{
-			fprintf(oFile, " 1");
-		}
-		else
-		{
-			fprintf(oFile, " 0");
-		}
+		fprintf(oFile, " 1");
+	}
+	else
+	{
+		fprintf(oFile, " 0");
 	}
 	fprintf(oFile, "\n");
 
@@ -252,17 +249,14 @@ void HFileIO_loadPlayer(FILE *iFile, HPlayer *player, HCard const *CARD_SET)
 		player->hasChangeAP = false;
 	}
 	HFileIO_goNextToken(iFile); // Shaked
-	for(int m=0; m<12; ++m)
+	fscanf(iFile, "%d", &temp); // APChange
+	if(temp)
 	{
-		fscanf(iFile, "%d", &temp); // APChange
-		if(temp)
-		{
-			player->shaked[m] = true;
-		}
-		else
-		{
-			player->shaked[m] = false;
-		}
+		player->hasShake = true;
+	}
+	else
+	{
+		player->hasShake = false;
 	}
 	fgetc(iFile); // Flush '\n'
 

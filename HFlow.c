@@ -3,8 +3,12 @@
 void HFlow_doGame(HGame *game, HCard const *CARD_SET, bool wasLoaded)//전체게임함수
 {
 	// Initialize Player Turn
+	Renderer_help();
 	if(!wasLoaded)
 	{
+		/*
+			Generate Card Deck
+		*/
 		while(true)
 		{
 			/*
@@ -30,63 +34,83 @@ void HFlow_doGame(HGame *game, HCard const *CARD_SET, bool wasLoaded)//전체게
 						break;
 					}
 				}
+
+				prev_card = this_card;
 			}
 			if(!four_card_duplication)
 			{
 				break;
 			}
 		}
-	}
-	Renderer_help();
 
-	/*
+		/*
 		ABOUT CHONG-TONG
 		Chong-tong should exist only one.
 		If there are more than 2 chong-tong, game will be nagari.
 		To examine whether chong-tong or not, this iterate every cards they have.
-	*/
-	// Chong-Tong Examination
-	int pres_who  = -1;
-	int pres_flag = HGame_isPres(game, &pres_who);
-	
-	if(pres_flag == 1)
-	{
-		// Chong-Tong
-		game->player[pres_who]->score += 10;
+		*/
+		// Chong-Tong Examination
+		int pres_who  = -1;
+		int pres_flag = HGame_isPres(game, &pres_who);
 		
-		Renderer_notice("What the... You are president! 0~0 You win!", CARD_HEIGHT);
-		HFlow_stop(game, pres_who, false);
-		Renderer_statistics(game);
-		HGame_reset(game, CARD_SET);
-	}
-	else if(pres_flag == -1)
-	{
-		// Nagari '~'
-		game->was_nagari = true;
+		if(pres_flag == 1)
+		{
+			// Chong-Tong
+			game->player[pres_who]->score += 10;
+			
+			HNotice_President(game->player[pres_who]);
+			HFlow_stop(game, pres_who, false);
+			HGame_reset(game, CARD_SET);
+		}
+		else if(pres_flag == -1)
+		{
+			// Nagari '~'
+			game->was_nagari = true;
+	
+			HNotice_Nagari();
+			HGame_reset(game, CARD_SET);
+		}
 
-		Renderer_notice("Congratulation! This phase is Nagari! Next phase will make x2 money.", CARD_HEIGHT);
-		Renderer_statistics(game);
-		HGame_reset(game, CARD_SET);
+		
 	}
 
 	int card_pointer = 0;
 	Renderer_game(game, card_pointer);
 
+	if(!wasLoaded)
+	{
+		/*
+			Shake Shake
+		*/
+		HGame_autoshake(game);
+	}
+
+	/*
+		MAIN GAME
+	*/
 	bool continue_game = true;
 	while(continue_game)
 	{
-		// When loaded, first time is preserved turn.
-		// But after that, first time is 0 Player's turn.
+		/*
+			FIRST TURN LOGIC
+
+			When loaded, first time is preserved turn.
+			But after that, first time is 0 Player's turn.
+		*/
 		int p;
 		if(wasLoaded)
 		{
 			p = game->current_player_num;
-			wasLoaded = false;
+			wasLoaded = false; // For next loop, this should be reset.
 		}
 		else
 		{
 			p = 0;
 		}
+
+		/*
+			PROCEEDING TURNS
+		*/
 		for( ; p<3 && continue_game; ++p)
 		{
 			
@@ -94,11 +118,6 @@ void HFlow_doGame(HGame *game, HCard const *CARD_SET, bool wasLoaded)//전체게
 			HPlayer *player = game->player[p];
 			card_pointer = 0;
 			Renderer_game(game, card_pointer);
-
-			if(HGame_willShake(game))
-			{	
-				Renderer_notice("Shake it~ Shake it~", CARD_HEIGHT);
-			}
 
 			//인터페이스 : e(exit), b(잔고), h(키설명),save(저장).load
 			bool isSelecting = true;
@@ -146,8 +165,6 @@ void HFlow_doGame(HGame *game, HCard const *CARD_SET, bool wasLoaded)//전체게
 
 					case 'b':
 						// See the Player's Balance
-						//sprintf(temp_string, "You have %d won...", player->money);
-						//Renderer_notice(temp_string, CARD_HEIGHT);
 						Renderer_showBalance(game);
 						break;
 
@@ -166,37 +183,44 @@ void HFlow_doGame(HGame *game, HCard const *CARD_SET, bool wasLoaded)//전체게
 						break;
 
 					case 's':
-						if(Renderer_save())
+						// Save
+						if(Renderer_save()) // If you want to save,
 						{
-							if(HFileIO_saveGame(game, CARD_SET))
+							if(HFileIO_saveGame(game, CARD_SET)) // Save
 							{
-								Renderer_notice("Save Done!", CARD_HEIGHT);
+								Renderer_notice("Save Done!", CARD_HEIGHT); // Success
 							}
 							else
 							{
-								Renderer_notice("Save Fail!", CARD_HEIGHT);
+								Renderer_notice("Save Fail!", CARD_HEIGHT); // Fail
 							}
 						}
 						break;
 				}
 			}
 
+			// Exit Game
 			if(!continue_game)
 			{
 				break;
 			}
-			
-			//eat함수
+
+			// eat함수
+			/*
+				Check whether this player eat gwan or not
+
+				This because to determine Gwan-Back
+			*/
 			bool hasGwan = HFlow_eat(game, card_pointer);
 
-			// Pan-SSuel-I
+			// Pan-SSuel-E
 			if(game->display_cards->size == 0 && player->myDeck->size > 0)
 			{
 				HFlow_stealcard(game);
 				HNotice_FClr(player);
 			}
-	
-			//점수산출score함수
+
+			// 점수산출score함수
 			HGame_calcScore(game);
 	
 			// End Gmae Logic
@@ -209,11 +233,12 @@ void HFlow_doGame(HGame *game, HCard const *CARD_SET, bool wasLoaded)//전체게
 					HGame_reset(game, CARD_SET);
 					loop_cut = true;
 					break;
+
 				case 1:
 					// Game End with Winner
 					HNotice_Win(player);
 
-					if(HFlow_stop(game, p, hasGwan))
+					if(HFlow_stop(game, p, hasGwan)) // Chekc if someone bankrupt or not
 					{
 						// Bankrupt
 						continue_game = false;
@@ -326,6 +351,8 @@ int HFlow_isEnd(HGame *game)
 
 /*
 	Eating Card : Return value is whether you eat the Gwang or not.
+
+	card_pointer is number that player selected
 */
 bool HFlow_eat(HGame *game, int card_pointer) //자기턴진행함수
 {
@@ -599,13 +626,10 @@ bool HFlow_stop(HGame *game, int winner, bool hasGwan)
     }
 
     // Processing Player's Shakability
-    for(int m=0; m<12; ++m)
+    if(win_player->hasShake)
     {
-    	if(win_player->shaked[m])
-    	{
-    		// If he shaked specific month, multiple 2
-    		money_base *= 2;
-    	}
+    	// If he shaked specific month, multiple 2
+    	money_base *= 2;
     }
 
     /*

@@ -15,25 +15,3 @@ LOG START
 [HGame : Note] HGame::reset(HGame *, HCard *) - Game Reset Done
 [HGame : Note] HGame::initTurn(HGame *) - Turn Init Done
 [HGame : Note] HGame::reset(HGame *, HCard *) - Game Reset Done
-[HGame : Note] HGame::initTurn(HGame *) - Turn Init Done
-[HGame : Note] HGame::reset(HGame *, HCard *) - Game Reset Done
-[HGame : Note] HGame::initTurn(HGame *) - Turn Init Done
-[HGame : Note] HGame::reset(HGame *, HCard *) - Game Reset Done
-[HGame : Note] HGame::initTurn(HGame *) - Turn Init Done
-[HGame : Note] HGame::reset(HGame *, HCard *) - Game Reset Done
-[HGame : Note] HGame::initTurn(HGame *) - Turn Init Done
-[HGame : Note] HGame::reset(HGame *, HCard *) - Game Reset Done
-[HGame : Note] HGame::initTurn(HGame *) - Turn Init Done
-[HGame : Note] HGame::reset(HGame *, HCard *) - Game Reset Done
-[HGame : Note] HGame::initTurn(HGame *) - Turn Init Done
-[HGame : Note] HGame::reset(HGame *, HCard *) - Game Reset Done
-[HGame : Note] HGame::initTurn(HGame *) - Turn Init Done
-[HGame : Note] HGame::reset(HGame *, HCard *) - Game Reset Done
-[HGame : Note] HGame::initTurn(HGame *) - Turn Init Done
-[HGame : Note] HGame::reset(HGame *, HCard *) - Game Reset Done
-[HGame : Note] HGame::initTurn(HGame *) - Turn Init Done
-[HGame : Note] HGame::reset(HGame *, HCard *) - Game Reset Done
-[HGame : Note] HGame::initTurn(HGame *) - Turn Init Done
-[HGame : Note] HGame::reset(HGame *, HCard *) - Game Reset Done
-[HGame : Note] HGame::initTurn(HGame *) - Turn Init Done
-[HGame : Note] HGame::reset(HGame *, HCard *) - Game Reset Done
